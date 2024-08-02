@@ -177,7 +177,7 @@ class market_window:
 
 
     def button_1_func(self):
-        toplevel=new_toplevel()
+        toplevel=new_toplevel(topmost=True)
         toplevel.geometry("350x375")
         toplevel.title("button_1")
         ProductNameText = CTkLabel(toplevel, text="Product name :")
@@ -382,11 +382,13 @@ class button_2_func:
         self.Repair_page.geometry("1000x60")
         """a soon as posible"""
 class new_toplevel(CTkToplevel):
-    def __init__(self,all_hide : bool = False):
+    def __init__(self,all_hide : bool = False,topmost : bool = False):
         super().__init__()
         set_default_color_theme(path.join(path.dirname(path.realpath(__file__)), 'assets\\extreme.json'))
         self.configure(takefocus=False)
-        #new_toplevel.attributes("-topmost", True)
+        self.attributes("-topmost", True)
+        if not topmost:
+            self.attributes("-topmost", False)
         if all_hide:
             all_stuffs.hide(self)
         else:
