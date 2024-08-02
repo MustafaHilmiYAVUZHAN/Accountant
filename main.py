@@ -5,7 +5,7 @@ from hPyT import all_stuffs,maximize_minimize_button,title_bar_text_color,rainbo
 from CTkMenuBar import CTkTitleMenu as TitleMenu
 from CTkMenuBar import CustomDropdownMenu as DropdownMenu
 from CTkMessagebox import CTkMessagebox as Messagebox
-from db_manager import PasswordManager,ProductRecords
+from DBManager import PasswordManager,ProductRecords
 from CTkTableMini import CTkTableMini as CTkTable
 from CTkTable import CTkTableMini as CTkTablePro
 from time import time
@@ -17,7 +17,6 @@ class passwords_window:
             self.DataForAccess=DataForAccess
         else:
             self.DataForAccess=PasswordManager()
-        set_default_color_theme("extreme.json")
         self.toplevel.geometry("175x150")
         self.toplevel.resizable(0,0)
         self.toplevel.title("Access")
@@ -76,7 +75,7 @@ class window_for_access:
         
         #title_bar.hide(self.window)
         #self.window.mainloop()####################
-        set_default_color_theme("extreme.json")
+        set_default_color_theme("assets\\extreme.json")
         self.window.geometry("300x200")
         self.window.resizable(0,0)
         self.window.title("Access")
@@ -131,7 +130,7 @@ class market_window:
         
         #title_bar.hide(self.window)
         #self.window.mainloop()####################
-        set_default_color_theme("extreme.json")
+        set_default_color_theme("assets\\extreme.json")
         self.window.geometry("360x900+20+20")
         self.window.resizable(0,0)
         self.window.title(f"User: {name}")
@@ -385,7 +384,7 @@ class button_2_func:
 class new_toplevel(CTkToplevel):
     def __init__(self,all_hide : bool = False):
         super().__init__()
-        set_default_color_theme(path.join(path.dirname(path.realpath(__file__)), 'extreme.json'))
+        set_default_color_theme(path.join(path.dirname(path.realpath(__file__)), 'assets\\extreme.json'))
         self.configure(takefocus=False)
         #new_toplevel.attributes("-topmost", True)
         if all_hide:

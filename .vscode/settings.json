@@ -1,3 +1,5 @@
 {
-    "python.pyhonPath":"env\\Scripts\\python.exe"
+    "python.pythonPath": "env\\Scripts\\python.exe", // Windows
+    "terminal.integrated.defaultProfile.windows": "Command Prompt"
+
 }
