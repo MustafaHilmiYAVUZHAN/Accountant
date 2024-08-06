@@ -11,6 +11,7 @@ from CTkTable import CTkTableMini as CTkTablePro
 from time import time
 from os import path
 from CTkCalender import CTkCalender
+from PIL import Image
 
 class new_toplevel(CTkToplevel):
     def __init__(self,all_hide : bool = False,topmost : bool = False):
@@ -149,7 +150,7 @@ class market_window:
         #title_bar.hide(self.window)
         #self.window.mainloop()####################
         set_default_color_theme("assets\\extreme.json")
-        self.window.geometry("360x900+20+20")
+        self.window.geometry("360x180+20+20")#900
         self.window.resizable(0,0)
         self.window.title(f"User: {name}")
         maximize_minimize_button.hide(self.window)
@@ -160,27 +161,27 @@ class market_window:
         self.TitleMenu.add_cascade(text="Change user",hover_color="#3030dd",command=lambda:(self.window.withdraw(),self.TitleMenu.destroy(),window_for_access(),self.window.destroy()))#{"height":20,"width":15,"fg_color":"#505050","bg_color":"#000001"})
         if name=="main":
             self.TitleMenu.add_cascade(text="Change user's data",hover_color="#3030dd",command=lambda:(self.window.withdraw(),self.TitleMenu.destroy(),passwords_window(),self.window.destroy()))
-        self.button_1=CTkButton(self.window,width=160,height=160,command=lambda:(self.window.withdraw(),button_1_func(self.window,self.ProductRecords)),bg_color="black")
-        self.button_1.grid(row=0,column=0,pady=10,padx=10)
-        self.button_1=CTkButton(self.window,width=160,height=160,command=lambda:(self.window.withdraw(),button_2_func(self.window,name,self.ProductRecords)),bg_color="black")
-        self.button_1.grid(row=0,column=1,pady=10,padx=10)
-        self.button_1=CTkButton(self.window,width=160,height=160,bg_color="black")
-        self.button_1.grid(row=1,column=0,pady=10,padx=10)
-        self.button_1=CTkButton(self.window,width=160,height=160,bg_color="black")
-        self.button_1.grid(row=1,column=1,pady=10,padx=10)
-        self.button_1=CTkButton(self.window,width=160,height=160,bg_color="black")
-        self.button_1.grid(row=2,column=0,pady=10,padx=10)
-        self.button_1=CTkButton(self.window,width=160,height=160,bg_color="black")
-        self.button_1.grid(row=2,column=1,pady=10,padx=10)
-        self.button_1=CTkButton(self.window,width=160,height=160,bg_color="black")
-        self.button_1.grid(row=3,column=0,pady=10,padx=10)
-        self.button_1=CTkButton(self.window,width=160,height=160,bg_color="black")
-        self.button_1.grid(row=3,column=1,pady=10,padx=10)
-        self.button_1=CTkButton(self.window,width=160,height=160,bg_color="black")
-        self.button_1.grid(row=4,column=0,pady=10,padx=10)
-        self.button_1=CTkButton(self.window,width=160,height=160,bg_color="black")
+        self.Add_product=CTkButton(self.window,text="",width=160,height=160,command=lambda:(self.window.withdraw(),Add_product_func(self.window,self.ProductRecords)),bg_color="black",image=CTkImage(Image.open("assets\\add_shopping_cart.png"),size=(70,70)))
+        self.Add_product.grid(row=0,column=0,pady=10,padx=10)
+        self.Record=CTkButton(self.window,width=160,text="",height=160,command=lambda:(self.window.withdraw(),Record_func(self.window,name,self.ProductRecords)),bg_color="black",image=CTkImage(Image.open("assets\description.png"),size=(70,70)))
+        self.Record.grid(row=0,column=1,pady=10,padx=10)
+        """self.Add_product=CTkButton(self.window,width=160,height=160,bg_color="black")
+        self.Add_product.grid(row=1,column=0,pady=10,padx=10)
+        self.Add_product=CTkButton(self.window,width=160,height=160,bg_color="black")
+        self.Add_product.grid(row=1,column=1,pady=10,padx=10)
+        self.Add_product=CTkButton(self.window,width=160,height=160,bg_color="black")
+        self.Add_product.grid(row=2,column=0,pady=10,padx=10)
+        self.Add_product=CTkButton(self.window,width=160,height=160,bg_color="black")
+        self.Add_product.grid(row=2,column=1,pady=10,padx=10)
+        self.Add_product=CTkButton(self.window,width=160,height=160,bg_color="black")
+        self.Add_product.grid(row=3,column=0,pady=10,padx=10)
+        self.Add_product=CTkButton(self.window,width=160,height=160,bg_color="black")
+        self.Add_product.grid(row=3,column=1,pady=10,padx=10)
+        self.Add_product=CTkButton(self.window,width=160,height=160,bg_color="black")
+        self.Add_product.grid(row=4,column=0,pady=10,padx=10)
+        self.Add_product=CTkButton(self.window,width=160,height=160,bg_color="black")
         
-        self.button_1.grid(row=4,column=1,pady=10,padx=10)
+        self.Add_product.grid(row=4,column=1,pady=10,padx=10)"""
         self.ProductRecords=ProductRecords()
         self.window.deiconify()
         self.window.mainloop()####################
@@ -194,12 +195,12 @@ class market_window:
 
 
 
-class button_1_func(new_toplevel):
+class Add_product_func(new_toplevel):
     def __init__(self,master,ProductRecords):
         super().__init__()
         self.protocol("WM_DELETE_WINDOW",lambda:(master.deiconify(),self.withdraw(),self.title_menu.withdraw(),self.title_menu.destroy()))
         self.geometry("350x375")
-        self.title("button_1")
+        self.title("Add_product")
         self.ProductRecords=ProductRecords
         ProductNameText = CTkLabel(self, text="Product name :")
         ProductNameComboBox = CTkComboBox(self, bg_color="black", width=220,values=self.ProductRecords.get_unique_product_names())
@@ -215,10 +216,12 @@ class button_1_func(new_toplevel):
         PieceEntry = CTkEntry(self, bg_color="black", width=70, font=CTkFont(size=18))
         CustomerText= CTkLabel(self, text="Seller :")
         CustomerEntry = CTkComboBox(self, bg_color="black",values=self.ProductRecords.get_unique_customers(), width=220)
+        SellingPriceText = CTkLabel(self,text="Selling price :",font=CTkFont(size=12))
+        SellingPriceEntry = CTkEntry(self,bg_color="black",font=CTkFont(size=12),width=70,fg_color="black",border_color="#aa3333",border_width=1)
         
         
-        Percent = CTkSlider(self)
-        Percent.place(x=70,y=800)
+        """Percent = CTkSlider(self)
+        Percent.place(x=70,y=200)"""
 
 
 
@@ -241,9 +244,11 @@ class button_1_func(new_toplevel):
         PaymentStatusText.place(x=15, y=140)
         PaymentStatusComboBox.place(x=115, y=140)
 
-        PieceText.place(x=15, y=300)
-        PieceEntry.place(x=190, y=300)
+        PieceText.place(x=15, y=260)
+        PieceEntry.place(x=190, y=260)
         PieceEntry.insert(0,"0")
+        SellingPriceText.place(x=15,y=300)
+        SellingPriceEntry.place(x=190,y=300)
         def update_label(useless=None):
             if len(PieceEntry.get())<8:
                 label_value.configure(text=PieceEntry.get())
@@ -265,11 +270,13 @@ class button_1_func(new_toplevel):
             new=ProductNameComboBox.get()
             if  (last is None or last != new):
                 if new in self.ProductRecords.get_unique_product_names() :
-                    product_dict=self.ProductRecords.get_min_data(new)
+                    product_dict=self.ProductRecords.get_first_data(new)
                     BarCodeEntry.delete(0,"end")
                     PurchasePriceEntry.delete(0,"end")
+                    SellingPriceEntry.delete(0,"end")
                     BarCodeEntry.insert(0,product_dict["barcode"])
                     PurchasePriceEntry.insert(0,product_dict["purchase_price"])
+                    SellingPriceEntry.insert(0,product_dict["selling_price"])
 
                     
                     CustomerEntry.set(product_dict["customer"])
@@ -281,6 +288,7 @@ class button_1_func(new_toplevel):
                     UnitComboBox.place_forget()
                     UnitComboBoxFake.configure(text=product_dict["unit"])
                     UnitComboBoxFake.place(x=116, y=180)
+                    
                 
 
                 else:
@@ -292,37 +300,38 @@ class button_1_func(new_toplevel):
 
             self.after(400,lambda:update_combobox(last=new))
         entry_add_10 = CTkButton(self, text="<", fg_color="#003300", hover_color="#00cc00", width=15, command=lambda: add(10), font=CTkFont(size=10))
-        entry_add_10.place(x=163, y=300)
+        entry_add_10.place(x=163, y=260)
 
         entry_add_100 = CTkButton(self, text="<", fg_color="#003300", hover_color="#00cc00", width=15, command=lambda: add(100), font=CTkFont(size=10))
-        entry_add_100.place(x=138, y=300)
+        entry_add_100.place(x=138, y=260)
 
         entry_add_1000 = CTkButton(self, text="<", fg_color="#003300", hover_color="#00cc00", width=15, command=lambda: add(1000), font=CTkFont(size=10))
-        entry_add_1000.place(x=113, y=300)
+        entry_add_1000.place(x=113, y=260)
 
         entry_subtract_10 = CTkButton(self, text=">", fg_color="#330000", hover_color="#cc0000", width=15, command=lambda: subtract(10), font=CTkFont(size=10))
-        entry_subtract_10.place(x=265, y=300)
+        entry_subtract_10.place(x=265, y=260)
 
         entry_subtract_100 = CTkButton(self, text=">", fg_color="#330000", hover_color="#cc0000", width=15, command=lambda: subtract(100), font=CTkFont(size=10))
-        entry_subtract_100.place(x=290, y=300)
+        entry_subtract_100.place(x=290, y=260)
 
         entry_subtract_1000 = CTkButton(self, text=">", fg_color="#330000", hover_color="#cc0000", width=15, command=lambda: subtract(1000), font=CTkFont(size=10))
-        entry_subtract_1000.place(x=315, y=300)
+        entry_subtract_1000.place(x=315, y=260)
 
         label_value = CTkLabel(self, text="")
-        label_value.place(x=60, y=300)
+        label_value.place(x=60, y=260)
         self.after(200,update_combobox)
         PieceEntry.bind("<Enter>",update_label)
         PieceEntry.bind("<KeyRelease>", update_label)
 
         self.mainloop()
-class button_2_func(new_toplevel):
+class Record_func(new_toplevel):
 
     def __init__(self,master,user,ProductRecords,list_=None):
         super().__init__()
         self.calender=None
         self.master=master
         self.ProductRecords=ProductRecords
+        self.ProductRecords.refresh_for_time()
         self.geometry("1110x850")
         self.user=user
         self.header=["no","Product Name","Barcode","Purchase","Selling","Piece","Unit","Time","Date","User","Process Type","Customer","Payment status"]
@@ -387,7 +396,7 @@ class button_2_func(new_toplevel):
         selection=self.ProductRecords.get_by_date(self.calender.selection)
         print(selection)
         if len(selection)!= 0:
-            button_2_func(master=self,ProductRecords=self.ProductRecords,user=self.user,list_=selection)
+            Record_func(master=self,ProductRecords=self.ProductRecords,user=self.user,list_=selection)
         
     def search_in_date(self):
         self.calender=CTkCalender(all_hide=None,command=self.date_func,position=f"{self.x}+{self.y+20}")
@@ -452,17 +461,12 @@ class button_2_func(new_toplevel):
             if dict_["column"]==3:
                 list_new=self.ProductRecords.get_barcode(dict_["value"])
             if  "list_new" in list(locals().keys()):
-                button_2_func(master=self,ProductRecords=self.ProductRecords,user=self.user,list_=list_new)
+                Record_func(master=self,ProductRecords=self.ProductRecords,user=self.user,list_=list_new)
     def table_command_2(self,dict_,list_=None):
         if dict_["value"]!="":
             print(list(self.SelectedProductList[int(dict_["row"])]))
             data=list(self.SelectedProductList[int(dict_["row"])])
-            del data[0]
-            del data[1]
-            del data[6]
-            del data[6]
-            del data[6]
-            data=[["Name","Purchase","Selling","Piece","Unit","Type","Customer","Status"],data]
+            #data=[["Name","Purchase","Selling","Piece","Unit","Type","Customer","Status"],data]
             #data=data.insert(0,)
             print(data)
             self.Repair(data)
@@ -476,18 +480,15 @@ class button_2_func(new_toplevel):
     def Repair(self,data):
         self.Repair_page=new_toplevel()
         self.Repair_page.geometry("300x600")
-        self.table_for_repair=CTkTable(self.Repair_page,
-                                       command=lambda a:self.table_command(a),
-                                       column_widths=[10,100,100,40,40,50,50,40,85,100,80,80,80],
-                                       header_color="#4444dd",values=data,
-                                       colors=["#1f1f1f","#303030"],
-                                       #command_2=lambda a:self.table_command_2(a),
-                                       corner_radius=5,border_width=1)
+        del data[0]
+        print(data)
+        print(self.ProductRecords.find_row_id(*data))
+        #####
+
             
         """self.table.mainframe.configure(border_width=1,border_color="#ff0000")"""
 
         
-        self.Repair_page.after(20,lambda t=self.table_for_repair:(t.grid(sticky="new",padx=30,pady=10)))
         self.Repair_page.mainloop()
 
 if __name__=="__main__":
