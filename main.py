@@ -686,6 +686,25 @@ class Sell_screen(new_toplevel):
         self.options_frame = CTkFrame(self,fg_color="black",border_color="#cccccc",border_width=1,width=650,height=90)
         self.options_frame.place(x=25,y=5)
         
+        self.ProductTable = CTkTable(self,
+                                     values=[["0","green"],["1","white"]],
+                                     colors=["#101010","#202020"],
+                                     column_widths=[200,200],
+                                     command=print,
+                                     command_2=print,
+                                     corner_radius=5)
+        self.after(100,lambda t=self.ProductTable:(t.place(x=25,y=110)))
+        self.after(600,lambda t=self.ProductTable:(t.add_row(["2","yellow"])))
+        self.after(900,lambda t=self.ProductTable:(t.add_row(["3","yellow"])))
+        self.after(1200,lambda t=self.ProductTable:(t.add_row(["4","black"])))
+        self.after(2700,lambda t=self.ProductTable:(t.remove_row(1)))
+        self.after(3500,lambda t=self.ProductTable:(t.remove_row(2)))
+        self.after(4000,lambda t=self.ProductTable:(t.remove_row(1)))
+        self.after(5900,lambda t=self.ProductTable:(t.remove_row(0)))
+        self.after(6500,lambda t=self.ProductTable:(t.remove_row(0)))
+        self.after(3500,lambda t=self.ProductTable:(t.column_special_command(0,lambda a:print("hi")),lambda a:print("hi")))
+
+        self.after(7500,lambda t=self.ProductTable:(print(t.values)))
         self.CustomerText = CTkLabel(self.options_frame,height=30,text="Customer :")
         self.CustomerComboBox = CTkComboBox(self.options_frame,height=30,values=self.ProductRecords.get_unique_customers_by_process_type("sell"))
 
@@ -699,6 +718,7 @@ class Sell_screen(new_toplevel):
 
         self.Status_positon = {"x":460,"y":30}
         self.ReturnButton.place(**self.Status_positon)
+
         self.mainloop()
     def ProcessStatusReturn(self):
         self.ProcessStatus=-1
@@ -710,7 +730,7 @@ class Sell_screen(new_toplevel):
         self.ProcessStatus=1
         self.SellButton.place_forget()
         self.ReturnButton.place(**self.Status_positon)
-
+    
 
 if __name__=="__main__":
     market_window("main")
