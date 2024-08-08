@@ -1,4 +1,5 @@
 from customtkinter import *
+import customtkinter as ctk
 from customtitlebar import *
 from pywinstyles import apply_style
 from hPyT import all_stuffs,maximize_minimize_button,title_bar_text_color,rainbow_border,border_color
@@ -91,7 +92,9 @@ class passwords_window:
         self.nameComboBox.update()
 class window_for_access:
     def __init__(self):
-        self.window=CTk()
+        ctk.set_widget_scaling(1.0)  
+        
+        self.window=ctk.CTk()
         
         #title_bar.hide(self.window)
         #self.window.mainloop()####################
@@ -114,6 +117,8 @@ class window_for_access:
         self.ButtonforAccess=CTkButton(self.window,text="Login",bg_color="black",command=self.loginControl)
         self.ButtonforAccess.place(rely=0.67,relx=0.3,relwidth=0.4,relheight=0.15)
         
+        self.nameEntry.bind("<Return>",lambda event:self.passwordEnrty.focus())
+        self.passwordEnrty.bind("<Return>",self.loginControl)
         """
         Burada data okunur ve isim listesi ve şifreler çekilir
         eğer boş ise oluşturulur
@@ -125,7 +130,7 @@ class window_for_access:
             Messagebox(title="Defualt Main access",message="name             : main\npassword     : main\n\nYou should change these")
             
         self.window.mainloop()####################
-    def loginControl(self):
+    def loginControl(self,useless=None):
         password=self.passwordEnrty.get()
         name=self.nameEntry.get()
         print(f"Name : {name}         PASSWORD: {password}")
@@ -146,7 +151,9 @@ class window_for_access:
 
 class market_window:
     def __init__(self,name):
+        
         self.window=new_toplevel()
+        
         self.window.iconify()
         
         self.window.geometry("360x360+20+20")#900
@@ -211,6 +218,7 @@ class market_window:
 
         self.ProductRecords=ProductRecords()
         self.window.deiconify()
+        
         self.window.mainloop()####################
 
     
@@ -675,38 +683,28 @@ class Repair_row_screen:
 class Sell_screen(new_toplevel):
     def __init__(self, master,user, ProductRecords):
         super().__init__()
-        self.geometry("700x700")
+        self.geometry("1000x900+0+0")
         self.user=user
         self.ProductRecords=ProductRecords
         self.master = master
         self.ProcessStatus = 1
         self.protocol("WM_DELETE_WINDOW",lambda:(master.deiconify(),self.withdraw()))
-        self.title("Shop     User : "+self.user)
+        self.title("     Shop"+175*" "+"User : "+self.user)
 
         self.options_frame = CTkFrame(self,fg_color="black",border_color="#cccccc",border_width=1,width=650,height=90)
         self.options_frame.place(x=25,y=5)
         
-        self.ProductTable = CTkTable(self,
-                                     values=[["0","green"],["1","white"]],
-                                     colors=["#101010","#202020"],
-                                     column_widths=[200,200],
-                                     command=print,
-                                     command_2=print,
-                                     corner_radius=5)
-        self.after(100,lambda t=self.ProductTable:(t.place(x=25,y=110)))
-        self.after(600,lambda t=self.ProductTable:(t.add_row(["2","yellow"])))
-        self.after(900,lambda t=self.ProductTable:(t.add_row(["3","yellow"])))
-        self.after(1200,lambda t=self.ProductTable:(t.add_row(["4","black"])))
-        self.after(2700,lambda t=self.ProductTable:(t.remove_row(1)))
-        self.after(3500,lambda t=self.ProductTable:(t.remove_row(2)))
-        self.after(4000,lambda t=self.ProductTable:(t.remove_row(1)))
-        self.after(5900,lambda t=self.ProductTable:(t.remove_row(0)))
-        self.after(6500,lambda t=self.ProductTable:(t.remove_row(0)))
-        self.after(3500,lambda t=self.ProductTable:(t.column_special_command(0,lambda a:print("hi")),lambda a:print("hi")))
+        self.BarcodeText = CTkLabel(self.options_frame,width=100,height=30,text="Barcode :")
+        self.BarcodeEntry = CTkEntry(self.options_frame,height=30,width=140,fg_color="black",border_width=1,border_color="white")
 
-        self.after(7500,lambda t=self.ProductTable:(print(t.values)))
-        self.CustomerText = CTkLabel(self.options_frame,height=30,text="Customer :")
-        self.CustomerComboBox = CTkComboBox(self.options_frame,height=30,values=self.ProductRecords.get_unique_customers_by_process_type("sell"))
+        self.BarcodeText.place(x=260,y=30)
+        self.BarcodeEntry.place(x=350,y=30)
+        
+        self.BarcodeEntry.bind("<KeyRelease>",self.ControlBarcode)
+
+        
+        self.CustomerText = CTkLabel(self.options_frame,width=100,height=30,text="Customer :")
+        self.CustomerComboBox = CTkComboBox(self.options_frame,width=140,height=30,values=self.ProductRecords.get_unique_customers_by_process_type("sell"))
 
         self.ReturnButton = CTkButton(self.options_frame,height=30,width=120,text="change Return",command=self.ProcessStatusReturn)
         self.SellButton = CTkButton(self.options_frame,height=30,width=120,text="change Sell",command=self.ProcessStatusSell)
@@ -714,10 +712,45 @@ class Sell_screen(new_toplevel):
 
 
         self.CustomerText.place(x=30,y=30)
-        self.CustomerComboBox.place(x=140,y=30)
-
-        self.Status_positon = {"x":460,"y":30}
+        self.CustomerComboBox.place(x=120,y=30)
+        self.piece_column=2
+        self.add_column=self.piece_column+1
+        self.subtract_column=self.piece_column+2
+        self.trash_column=self.piece_column+3
+        self.Status_positon = {"x":500,"y":30}
         self.ReturnButton.place(**self.Status_positon)
+        self.ProductTable = CTkTable(self,
+                                     values=[["bisk"],["disk"]],
+                                     colors=["#101010","#202020"],
+                                     column_widths=[200,200,20,20,40],
+                                     defualt_colums={self.piece_column:"1",self.add_column:"+",self.subtract_column:"-",self.trash_column:"***assets\\icons\\delete_forever_24.png"},
+                                     command=print,
+                                     command_2=print,
+                                     row_height=40,
+                                     corner_radius=5)
+        self.after(100,lambda t=self.ProductTable:(t.place(x=25,y=110)))
+        self.after(150,lambda t=self.ProductTable:(
+            t.column_special_command(self.add_column,
+                                     lambda dict :(
+                                         dict.update({"column":self.piece_column}),
+                                         t.update_one_value(str(int(t.values[dict["row"]][dict["column"]])+1),dict)
+                                         )
+                                         )))
+        self.after(150,lambda t=self.ProductTable:(
+            t.column_special_command(self.subtract_column,
+                                     lambda dict :(
+                                         dict.update({"column":self.piece_column}),
+                                         t.update_one_value(str(int(t.values[dict["row"]][dict["column"]])-1) if int(t.values[dict["row"]][dict["column"]])>0 else 0,dict),
+                                         t.remove_row(dict["row"]) if t.values[dict["row"]][dict["column"]]==0 else None
+                                         )
+                                         )))
+        self.after(
+            150,
+            lambda t=self.ProductTable:(
+                t.column_special_command(self.trash_column,
+                                         lambda dict :t.remove_row(dict["row"])
+                                         )))
+        
 
         self.mainloop()
     def ProcessStatusReturn(self):
@@ -730,7 +763,21 @@ class Sell_screen(new_toplevel):
         self.ProcessStatus=1
         self.SellButton.place_forget()
         self.ReturnButton.place(**self.Status_positon)
-    
+    def ControlBarcode(self,useless=None):
+        ProductLastList = self.ProductRecords.get_barcode(self.BarcodeEntry.get())
+        ProductLastList = ProductLastList[0] if len(ProductLastList)!=0 else "empty"
+        if ProductLastList!="empty":
+        
+            if ProductLastList[0] in [row[0] for row in self.ProductTable.values]:
+                for i,a in enumerate([row[0] for row in self.ProductTable.values]):
+                    if a==ProductLastList[0]:
+                        row=i
+                        break
+                self.ProductTable.update_one_value(int(self.ProductTable.values[row][self.piece_column])+1,row=row,column=1)
+            else:
+                self.ProductTable.add_row([ProductLastList[0]])
+            self.BarcodeEntry.delete(0,"end")
+        print(ProductLastList)
 
 if __name__=="__main__":
     market_window("main")
