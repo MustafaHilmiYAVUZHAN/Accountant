@@ -13,7 +13,7 @@ from os import path
 from CTkCalender import CTkCalender
 from PIL import Image
 from excelCreater import excelCreater as ECreater
-from time import sleep
+from datetime import datetime
 ICON="assets\\icons\\"
 ASSETS="assets\\"
 
@@ -114,9 +114,9 @@ class passwords_window:
 ###################################
 class window_for_access:
     def __init__(self):
-        ctk.set_widget_scaling(1.0)  
+         
         
-        self.window=ctk.CTk()
+        self.window=CTk()
         
         #title_bar.hide(self.window)
         #self.window.mainloop()####################
@@ -273,7 +273,7 @@ class market_window:
 class Add_product_screen(new_toplevel):
     def __init__(self, master, ProductRecords,user):
         super().__init__()
-        self.protocol("WM_DELETE_WINDOW", lambda: (master.deiconify(), self.withdraw(), self.title_menu.withdraw(), self.title_menu.destroy()))
+        self.protocol("WM_DELETE_WINDOW", lambda: (master.deiconify(), self.withdraw()))
         self.geometry("350x435")
         self.title("Add_product")
         self.user=user
@@ -558,11 +558,11 @@ class Record_screen(new_toplevel):
     def table_command(self,dict_,list_=None):
         if dict_["value"]!="" and dict_["row"]!=0:
             print(dict_)
-            if dict_["column"]==12:
+            if dict_["column"]==11:
                 list_new=self.ProductRecords.get_customer(dict_["value"])
-            if dict_["column"]==2:
+            if dict_["column"]==1:
                 list_new=self.ProductRecords.get_product(dict_["value"])
-            if dict_["column"]==3:
+            if dict_["column"]==2:
                 list_new=self.ProductRecords.get_barcode(dict_["value"])
             if  "list_new" in list(locals().keys()) :
                 if list_new!=self.list_:
@@ -768,7 +768,9 @@ class Sell_screen(new_toplevel):
 
         self.options_frame = CTkFrame(self,fg_color="black",border_color="#cccccc",border_width=1,width=950,height=90)
         self.options_frame.place(x=25,y=5)
-        
+        self.ResultFrame = CTkFrame(self,fg_color="black",border_color="#cccccc",border_width=1,width=950,height=90)
+        self.ResultFrame.place(x=30,y=800)
+
         self.BarcodeText = CTkLabel(self.options_frame,width=100,height=30,text="Barcode :")
         self.BarcodeEntry = CTkEntry(self.options_frame,height=30,width=140,fg_color="black",border_width=1,border_color="white")
 
@@ -788,7 +790,7 @@ class Sell_screen(new_toplevel):
         self.NameOptionMenu.place(x=410,y=30)
 
         self.CustomerText = CTkLabel(self.options_frame,height=30,text="Customer :")
-        self.CustomerComboBox = CTkComboBox(self.options_frame,width=140,height=30,values=self.ProductRecords.get_unique_customers_by_process_type("sell"))
+        self.CustomerComboBox = CTkComboBox(self.options_frame,width=140,height=30,values=["",*self.ProductRecords.get_unique_customers()])
     
         self.CustomerText.place(x=30,y=30)
         self.CustomerComboBox.place(x=120,y=30)
@@ -797,49 +799,89 @@ class Sell_screen(new_toplevel):
 
 
 
-        self.ReturnButton = CTkButton(self.options_frame,height=30,width=120,text="change Return",command=self.ProcessStatusReturn,image=CTkImage(Image.open(ICON+"assignment_return_24.png")))
-        self.SellButton = CTkButton(self.options_frame,height=30,width=120,text="change Sell",command=self.ProcessStatusSell)
+        self.ReturnButton = CTkButton(self.options_frame,height=30,width=140,text="change Return",command=self.ProcessStatusReturn,image=CTkImage(Image.open(ICON+"assignment_return_24.png")))
+        self.SellButton = CTkButton(self.options_frame,height=30,width=140,text="change Sell",command=self.ProcessStatusSell)
+
         
-        self.ResultFrame = CTkFrame(self,fg_color="black",border_color="#cccccc",border_width=1,width=950,height=90)
+        self.SaveButton = CTkButton(self.ResultFrame,height=30,fg_color="black",border_width=1,border_color="green",width=140,text="Sell",command=self.saveReceipt)
+        
+        
         self.SumLabel = CTkLabel(self.ResultFrame,text="Sum price : ")
-        self.SumText = CTkLabel(self.ResultFrame,text="0",fg_color="#404040",corner_radius=5,width=60)
+        self.SumText = CTkLabel(self.ResultFrame,text="0",width=100,fg_color="#404040",corner_radius=5)
 
-        self.ResultFrame.place(x=30,y=800)
         self.SumLabel.place(x=20,y=30)
-        self.SumText.place(x=140,y=30)
+        self.SumText.place(x=100,y=30)
 
+        self.PaymentStatusLabel = CTkLabel(self.ResultFrame,text="Select Payment \n Status :")
+        self.PaymentStatusComboBox = CTkComboBox(self.ResultFrame,bg_color="black", values=self.ProductRecords.get_unique_payment_status(), width=120)
+
+        self.PaymentStatusLabel.place(x=300,y=30)
+        self.PaymentStatusComboBox.place(x=400,y=30)
+
+        self.DescriptionLabel = CTkLabel(self.ResultFrame,text="Description : ")
+        self.DescriptionEntry = CTkEntry(self.ResultFrame)
+
+        self.DescriptionLabel.place(x=550,y=30)
+        self.DescriptionEntry.place(x=630,y=30)
 
         self.barcpode_column=1
         self.selling_price=2
-        self.sum_column=3
-        self.piece_column=4
+        self.unit_column=3
+        self.sum_column=4
+        self.piece_column=5
         self.add_column=self.piece_column+1
         self.subtract_column=self.piece_column+2
         self.trash_column=self.piece_column+3
-        self.Piece_entry_column=self.piece_column+4
+        
         
         self.ReturnButton.place(**self.Status_positon)
+        self.SaveButton.place(**self.Status_positon)
+
         self.ProductTable = CTkTable(self,
                                      values=[[]],
                                      colors=["#101010","#202020"],
-                                     column_widths=[400,200,50,50,20,20,20,20],
+                                     column_widths=[400,100,70,70,30,20,20,20,20],
                                      defualt_colums={self.piece_column:"1",
                                                      self.add_column:"+",
                                                      self.subtract_column:"-",
                                                      self.trash_column:ICON+"delete_forever_24.png***",
-                                                     self.Piece_entry_column:ICON+"more_vert_24.png***"
+                                                     
                                                      },
                                      command=print,
                                      command_2=print,
                                      row_height=40,
-                                     corner_radius=5)
+                                     corner_radius=15)
         self.after(100,self.tableCommands)
 
 
         self.mainloop()
+    def saveReceipt(self):
+        now = datetime.now()
+        
+        time = now.strftime("%H:%M:%S")
+        
+        date = now.strftime("%d/%m/%Y")
+
+        for row in self.ProductTable.values:
+            self.ProductRecords.add(row[0],
+                                    row[1],
+                                    0,
+                                    self.ProcessStatus*int(row[self.sum_column]),
+                                    -int(row[self.piece_column])*self.ProcessStatus,
+                                    row[self.unit_column],
+                                    self.user,
+                                    "Sell" if self.ProcessStatus==1 else "Return",
+                                    self.CustomerComboBox.get() if self.CustomerComboBox.get()!="" else "unknown",
+                                    self.PaymentStatusComboBox.get(),
+                                    description=self.DescriptionEntry.get(),
+                                    time=time,
+                                    date=date
+            )
+        self.ProductRecords.refresh_for_time()
+
     def SumPriceUpdate(self):
         price=0.0
-        for p in [row[3] for row in self.ProductTable.values]:
+        for p in [row[self.sum_column] for row in self.ProductTable.values]:
             price+=float(p)
         self.SumText.configure(text=str(price))
         self.after(100,self.SumPriceUpdate)
@@ -870,7 +912,7 @@ class Sell_screen(new_toplevel):
             )
         )
         self.ProductTable.column_special_command(
-            self.Piece_entry_column,
+            self.piece_column,
             self.Entry_piece
         )
         self.SumPriceUpdate()
@@ -878,11 +920,13 @@ class Sell_screen(new_toplevel):
         self.ProcessStatus=-1
         print("a")
         self.ReturnButton.place_forget()
+        self.SaveButton.configure(border_color="red",text="Return")
         self.SellButton.place(**self.Status_positon)
     def ProcessStatusSell(self):
         print("b")
         self.ProcessStatus=1
         self.SellButton.place_forget()
+        self.SaveButton.configure(border_color="green",text="Sell")
         self.ReturnButton.place(**self.Status_positon)
     def ControlProduct(self,useless=None):
         if useless is not None:
@@ -907,7 +951,7 @@ class Sell_screen(new_toplevel):
                 self.ProductTable.update_one_value(int(self.ProductTable.values[row][self.piece_column])+1,row=row,column=self.piece_column)
                 self.ProductTable.update_one_value(float(self.ProductTable.values[row][self.piece_column])*float(self.ProductTable.values[row][self.selling_price]),row=row,column=self.sum_column)
             else:
-                self.ProductTable.add_row([ProductLastList[0],ProductLastList[1],ProductLastList[3],ProductLastList[3]])
+                self.ProductTable.add_row([ProductLastList[0],ProductLastList[1],ProductLastList[3],ProductLastList[5],ProductLastList[3]])
             if useless is not None:
                 self.BarcodeEntry.delete(0,"end")
         print(ProductLastList)
@@ -918,10 +962,11 @@ class Sell_screen(new_toplevel):
             pass
         else:
             self.EntryToplevelBool=True
+            
             if index is None:
                 index=kwargs
-            Toplevel = new_toplevel(all_hide=True,topmost=True)
-            Toplevel.after(30,Toplevel.focus)
+            Toplevel = new_toplevel(topmost=True)
+            Toplevel.protocol("WM_DELETE_WINDOW",lambda:(ToplevelBool(self),Toplevel.destroy()))
             Toplevel.geometry(f"{self.winfo_pointerx()}+{self.winfo_pointery()}")
             index["column"]=self.piece_column
             Toplevel.title("     Piece")
@@ -931,11 +976,15 @@ class Sell_screen(new_toplevel):
                     lambda event, entry=Entry:(
                         self.ProductTable.update_one_value(entry.get(),index) if entry.get().isdigit() else None,
                         self.ProductTable.update_one_value(float(self.ProductTable.values[index["row"]][self.piece_column])*float(self.ProductTable.values[index["row"]][self.selling_price]),row=index["row"],column=self.sum_column),
-                        ToplevelBool(),
+                        ToplevelBool(self),
                         Toplevel.destroy()
 
                     ))
-            Toplevel.bind("<FocusOut>",lambda event: Toplevel.after(1500, lambda: (Toplevel.destroy(),ToplevelBool(self)) if self.focus_get() != Toplevel else None))
+            
+            Toplevel.after(299,Toplevel.focus)
+            Toplevel.after(300,Entry.focus)
+            print(Entry.focus_displayof())
+    
             Toplevel.mainloop()
             
 if __name__=="__main__":
