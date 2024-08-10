@@ -12,7 +12,7 @@ from time import time
 from os import path
 from CTkCalender import CTkCalender
 from PIL import Image
-from excelCreater import excelCreater as ECreater
+from excelCreater import ExcelTableCreator as Ecreater
 from datetime import datetime
 ICON="assets\\icons\\"
 ASSETS="assets\\"
@@ -35,7 +35,14 @@ class new_toplevel(CTkToplevel):
 #################### 
 
 
-
+"""
+ad
+adres
+telefon
+ticaret sicil numarası
+vergidairesi
+verginumarası
+"""
 
 
 
@@ -54,7 +61,7 @@ class passwords_window:
         self.toplevel.resizable(0,0)
         self.toplevel.title("Access")
         maximize_minimize_button.hide(self.toplevel)
-        title_bar_text_color.set(self.toplevel,"#ff0000")
+        
 
         border_color.set(self.toplevel,"#ff0000")
         apply_style(self.toplevel,"acrylic")
@@ -188,21 +195,17 @@ class market_window:
         
         self.window.iconify()
         
-        self.window.geometry("360x360+20+20")#900
+        self.window.geometry("360x540+20+20")#900
 
         self.name=name
         self.window.title(f"User: {name}")
         maximize_minimize_button.hide(self.window)
-        title_bar_text_color.set(self.window,"#aaaaaa")
         apply_style(self.window,"acrylic")
         self.window.protocol("WM_DELETE_WINDOW",lambda:Messagebox(title="Exit",message="Do you want exit",option_1="Exit",option_1_func=lambda:exit(),option_2="cancel",option_2_func=lambda:print("",end=""),option_3="Change user",option_3_func=lambda:(self.window.withdraw(),window_for_access())))
-        self.TitleMenu=TitleMenu(master=self.window,x_offset=115)
-        self.TitleMenu.add_cascade(text="Change user",command=lambda:(self.window.withdraw(),self.TitleMenu.destroy(),window_for_access(),self.window.destroy()))#{"height":20,"width":15,"fg_color":"#505050","bg_color":"#000001"})
-        if name=="main":
-            self.TitleMenu.add_cascade(text="Change user's data",command=lambda:(self.window.withdraw(),self.TitleMenu.destroy(),passwords_window(),self.window.destroy()))
         self.add_image = CTkImage(Image.open(ICON+"add_shopping_cart.png"), size=(70, 70))
         self.record_image = CTkImage(Image.open(ICON+"description.png"), size=(70, 70))
         self.sell_image = CTkImage(Image.open(ICON+"shopping.png"), size=(70, 70))
+
         self.Add_product = CTkButton(
             self.window,
             text="",
@@ -248,7 +251,55 @@ class market_window:
         )
         self.Sell.grid(row=1, column=0, pady=10, padx=10)
 
+        self.logout = CTkButton(
+            self.window,
+            width=160,
+            text="",
+            height=160,
+            command=lambda:(self.window.withdraw(),window_for_access(),self.window.destroy()),
+            bg_color="black",
+            fg_color="black",
+            border_color="white",
+            border_width=1,
+            hover_color="#111111",
+            image=CTkImage(Image.open(ICON+"logout.png"),size=(70,70))
+        )
+        self.logout.grid(row=1, column=1, pady=10, padx=10)
+        if name=="main":
+
+            self.pin = CTkButton(
+                self.window,
+                width=160,
+                text="",
+                height=160,
+                command=lambda:(self.window.withdraw(),passwords_window(),self.window.destroy()),
+                bg_color="black",
+                fg_color="black",
+                border_color="white",
+                border_width=1,
+                hover_color="#111111",
+                image=CTkImage(Image.open(ICON+"pin.png"),size=(70,70))
+            )
+        else:
+            self.pin = CTkButton(
+                self.window,
+                width=160,
+                text="",
+                height=160,
+                hover=False,
+                bg_color="black",
+                fg_color="black",
+                command=lambda:Messagebox(title="You are not main",message="You can't this"),
+                border_color="white",
+                border_width=1,
+                hover_color="#111111",
+                image=CTkImage(Image.open(ICON+"pin.png"),size=(70,70))
+            )
+
+
+        self.pin.grid(row=2, column=0, pady=10, padx=10)
         self.ProductRecords=ProductRecords()
+        self.ProductRecords.refresh_for_time()
         self.window.deiconify()
         
         self.window.mainloop()####################
@@ -278,25 +329,27 @@ class Add_product_screen(new_toplevel):
         self.title("Add_product")
         self.user=user
         self.ProductRecords = ProductRecords
-        
+        self.fake =False
         self.ProductNameText = CTkLabel(self, text="Product name :")
         self.ProductNameComboBox = CTkComboBox(self, bg_color="black", width=220, values=self.ProductRecords.get_unique_product_names())
         self.BarCodeText = CTkLabel(self, text="Barcode :")
         self.BarCodeEntry = CTkEntry(self, bg_color="black", width=220)
         self.BarCodeEntryFake = CTkLabel(self, text_color="#888888", text=" ", anchor="w", fg_color=ThemeManager.theme["CTkEntry"]["fg_color"], corner_radius=ThemeManager.theme["CTkComboBox"]["corner_radius"], width=220)
-        self.PurchasePriceText = CTkLabel(self, text="Purchase Price :")
-        self.PurchasePriceEntry = CTkEntry(self, bg_color="black", width=220)
+        self.CustomerText = CTkLabel(self, text="Seller :")
+        self.CustomerComboBox = CTkComboBox(self, bg_color="black", values=self.ProductRecords.get_unique_customers_by_process_type("Buy"), width=220)
+        self.PaymentStatusText = CTkLabel(self, text="Payment status :")
+        self.PaymentStatusComboBox = CTkComboBox(self, bg_color="black", values=self.ProductRecords.get_unique_payment_status(), width=220)
         self.UnitText = CTkLabel(self, text="Unit :")
         self.UnitComboBox = CTkComboBox(self, bg_color="black", width=220, values=self.ProductRecords.get_unique_product_units())
+        self.PurchasePriceText = CTkLabel(self, text="Purchase Price :")
+        self.PurchasePriceEntry = CTkEntry(self, bg_color="black", width=220)
         self.UnitComboBoxFake = CTkLabel(self, text="", text_color="#888888", anchor="w", fg_color=ThemeManager.theme["CTkComboBox"]["fg_color"], corner_radius=ThemeManager.theme["CTkComboBox"]["corner_radius"], width=218)
         self.PieceText = CTkLabel(self, text="Piece :")
         self.PieceEntry = CTkEntry(self, bg_color="black", width=70, font=CTkFont(size=18))
-        self.CustomerText = CTkLabel(self, text="Seller :")
-        self.CustomerComboBox = CTkComboBox(self, bg_color="black", values=self.ProductRecords.get_unique_customers_by_process_type("Buy"), width=220)
-        self.SellingPriceText = CTkLabel(self, text="Selling price :", font=CTkFont(size=12))
+
+        self.SellingPriceText = CTkLabel(self, text="Selling price\nof a unit :", font=CTkFont(size=12))
         self.SellingPriceEntry = CTkEntry(self, bg_color="black", font=CTkFont(size=12), width=70, fg_color="black", border_color="#aa3333", border_width=1)
-        self.PaymentStatusText = CTkLabel(self, text="Payment status :")
-        self.PaymentStatusComboBox = CTkComboBox(self, bg_color="black", values=self.ProductRecords.get_unique_payment_status(), width=220)
+
 
         self.DescritionText = CTkLabel(self,text="Description :")
         self.DescriptionEntry = CTkEntry(self, bg_color="black", width=220)
@@ -335,7 +388,10 @@ class Add_product_screen(new_toplevel):
         self.entry_subtract_100.place(x=290, y=260)
         self.entry_subtract_1000 = CTkButton(self, text=">", fg_color="#330000", hover_color="#cc0000", width=15, command=lambda: self.subtract(1000), font=CTkFont(size=10))
         self.entry_subtract_1000.place(x=315, y=260)
-
+        self.UnitComboBox.set("")
+        self.CustomerComboBox.set("")
+        self.ProductNameComboBox.set("")
+        self.PaymentStatusComboBox.set("")
         self.after(200, self.update_combobox)
         self.PieceEntry.bind("<Enter>", self.update_label)
         self.PieceEntry.bind("<KeyRelease>", self.update_label)
@@ -371,12 +427,15 @@ class Add_product_screen(new_toplevel):
                 self.PurchasePriceEntry.delete(0, "end")
                 self.SellingPriceEntry.delete(0, "end")
                 self.DescriptionEntry.delete(0,"end")
+                self.PieceEntry.delete(0,"end")
+
                 self.BarCodeEntry.insert(0, product_dict["barcode"])
-                self.PurchasePriceEntry.insert(0, product_dict["purchase_price"])
+                self.PurchasePriceEntry.insert(0, product_dict["amount"])
                 self.SellingPriceEntry.insert(0, product_dict["selling_price"])
                 self.CustomerComboBox.set(product_dict["customer"])
                 self.PaymentStatusComboBox.set(product_dict["payment_status"])
                 self.DescriptionEntry.insert(0,product_dict["description"])
+                self.PieceEntry.insert(0,"0")
 
                 self.BarCodeEntry.place_forget()
                 self.BarCodeEntryFake.configure(text=product_dict["barcode"])
@@ -386,29 +445,71 @@ class Add_product_screen(new_toplevel):
                 self.UnitComboBoxFake.place(x=116, y=180)
                 self.fake=True
             else:
+                if self.fake:
+                    self.PurchasePriceEntry.delete(0, "end")
+                    self.SellingPriceEntry.delete(0, "end")
+                    self.DescriptionEntry.delete(0,"end")
+                    self.BarCodeEntry.delete(0,"end")
+                    self.PurchasePriceEntry.insert(0, "0")
+                    self.SellingPriceEntry.insert(0, "0")
+                    self.CustomerComboBox.set("")
+                    self.PaymentStatusComboBox.set("")
                 self.fake=False
                 self.UnitComboBoxFake.place_forget()
                 self.UnitComboBox.place(x=115, y=180)
                 self.BarCodeEntryFake.place_forget()
                 self.BarCodeEntry.place(x=115, y=60)
-                self.PurchasePriceEntry.delete(0, "end")
-                self.SellingPriceEntry.delete(0, "end")
-                self.DescriptionEntry.delete(0,"end")
-                self.BarCodeEntry.delete(0,"end")
-                self.PurchasePriceEntry.insert(0, "0")
-                self.SellingPriceEntry.insert(0, "0")
+                
 
 
 
         self.after(400, lambda: self.update_combobox(last=new))
+    def convert_str(self,s):
+        try:
+            # Önce integer'a dönüştürmeyi dene
+            int_value = int(s)
+            return int_value if int_value != 0 else False
+        except ValueError:
+            # Eğer integer'a dönüştürme başarısız olursa, float'a dönüştürmeyi dene
+            try:
+                float_value = float(s)
+                return float_value if float_value != 0.0 else False
+            except ValueError:
+                # Her iki dönüşüm de başarısız olursa False döndür
+                return False
+
     def save(self):
         self.SaveButton.configure(command=None)
-        self.ProductRecords.refresh_for_time()
+        print(self.PieceEntry.get())
+        if self.ProductNameComboBox.get()=="":
+            Messagebox(self,title="Product Name ComboBox",message="should not be empty")
+        elif self.DescriptionEntry.get()=="":
+            Messagebox(self,title="Description Entry",message="should not be empty")
+        elif self.CustomerComboBox.get()=="":
+            Messagebox(self,title="Seller ComboBox",message="should not be empty")
+        elif self.PaymentStatusComboBox.get()=="":
+            Messagebox(self,title="Payment Status ComboBox",message="should not be empty")
+        elif not self.convert_str(self.PieceEntry.get()):
+            Messagebox(self,title="Piece Entry",message="should not be empty or 0")
+        elif not self.convert_str(self.PurchasePriceEntry.get()):
+            Messagebox(self,title="Purchase Price Entry",message="should not be empty or 0")
+        elif not self.convert_str(self.SellingPriceEntry.get()):
+            Messagebox(self,title="Selling Price Entry",message="should not be empty or 0")
 
-        if self.fake:
-            self.ProductRecords.add(self.ProductNameComboBox.get(),self.BarCodeEntryFake.cget("text"),self.PurchasePriceEntry.get(),self.SellingPriceEntry.get(),self.PieceEntry.get(),self.UnitComboBoxFake.cget("text"),self.user,"Buy",self.CustomerComboBox.get(),self.PaymentStatusComboBox.get(),self.DescriptionEntry.get())
+        elif self.fake:
+            self.ProductRecords.add(self.ProductNameComboBox.get(),self.BarCodeEntryFake.cget("text"),"-"+self.PurchasePriceEntry.get(),self.SellingPriceEntry.get(),self.PieceEntry.get(),self.UnitComboBoxFake.cget("text"),self.user,"Buy",self.CustomerComboBox.get(),self.PaymentStatusComboBox.get(),self.DescriptionEntry.get())
+            Messagebox(title="Succesfull",message="Your record is succesfull",icon="check",text_color="green")
+            self.ProductNameComboBox.set("")
+            self.update_combobox()
+        elif self.BarCodeEntry.get()=="":
+            Messagebox(self,title="Barcode Entry",message="should not be empty")
+        elif self.UnitComboBox.get()=="":
+            Messagebox(self,title="Unit ComboBox",message="should not be empty")
         else:
-            self.ProductRecords.add(self.ProductNameComboBox.get(),self.BarCodeEntry.get(),self.PurchasePriceEntry.get(),self.SellingPriceEntry.get(),self.PieceEntry.get(),self.UnitComboBox.get(),self.user,"Buy",self.CustomerComboBox.get(),self.PaymentStatusComboBox.get(),self.DescriptionEntry.get())
+            self.ProductRecords.add(self.ProductNameComboBox.get(),self.BarCodeEntry.get(),"-"+self.PurchasePriceEntry.get(),self.SellingPriceEntry.get(),self.PieceEntry.get(),self.UnitComboBox.get(),self.user,"Buy",self.CustomerComboBox.get(),self.PaymentStatusComboBox.get(),self.DescriptionEntry.get())
+            self.ProductNameComboBox.set("")
+            self.update_combobox()
+            Messagebox(title="Succesfull",message="Your record is succesfull",icon="check",text_color="green")
         self.after(1020,lambda:self.SaveButton.configure(command=self.save))
         """self.master.deiconify()
         self.withdraw()"""
@@ -430,14 +531,15 @@ class Record_screen(new_toplevel):
         self.calender=None
         self.list_=list_
         self.master=master
+        self.title("Records                    User  :  "+user)
         self.main = self.master if main else master.main
         self.ProductRecords=ProductRecords
-        
+        self.ProductRecords.refresh_for_time()
         self.geometry("1260x850")
         self.protocol("WM_DELETE_WINDOW",lambda:(master.deiconify(),self.withdraw(),self.title_menu.withdraw(),self.title_menu.destroy()))
         self.user=user
-        self.header=["no","Product Name","Barcode","Purchase","Selling","Piece","Unit","Time","Date","User","Process Type","Customer","Payment status","Description"]
-        self.title_menu=TitleMenu(master=self,x_offset=215)
+        self.header=["no","Product Name","Barcode","Amount","Selling","Piece","Unit","Time","Date","User","Process Type","Customer","Payment status","Description","Regulation"]
+        self.title_menu=TitleMenu(master=self,x_offset=315)
         self.master.withdraw()
         
         self.title_menu.add_cascade(text="◀",command=self.backstep)
@@ -453,18 +555,28 @@ class Record_screen(new_toplevel):
         self.title_menu.add_cascade(text="",image=CTkImage(Image.open(ICON+"menu.png")),command=lambda:(self.main.deiconify(),self.withdraw()))
         self.bind("<Motion>",self.get_mouse_position)
         self.title_menu.bind("<Motion>",self.get_mouse_position)
+        self.bottomFrame = CTkFrame(self)
+        self.AmountLabel = CTkLabel(self.bottomFrame,text="Amount : ")
+        self.AmountText = CTkLabel(self.bottomFrame,text=".")
+        self.bottomFrame.place(x=30,y=800)
+        self.AmountLabel.place(x=10,y=30)
+        self.AmountText.place(x=67,y=30)
+
         if list_ is None:
             self.ProductList=self.ProductRecords.get_numerate_table()
+            self.list_=self.ProductList
             
         else:
             self.ProductList=self.ProductRecords.get_numerate(list_)
         ProductList=self.ProductList
+        
         self.title_menu.menu_buttons[1].configure(text=str(int((len(self.ProductList)/25+0.999)))+"      /")
         if len(ProductList)>25:
             self.SelectedProductList=self.ProductList[0:25]
             
         else:
             self.SelectedProductList=ProductList[0:len(ProductList)]
+        
         if self.check_customer(self.ProductList):
             self.title(f"Customer : {self.ProductList[0][11]}")
         self.title_menu.menu_buttons[5].configure(command=lambda:Ecreater(self.SelectedProductList[1:]))
@@ -485,12 +597,29 @@ class Record_screen(new_toplevel):
 
         
         self.after(100,lambda t=self.table:(t.grid(sticky="new",padx=30,pady=10)))
+        self.after(220,lambda:(
+            self.geometry(f"{self.table.mainframe.winfo_width()+60}x900"),
+            print(f"{self.table.mainframe.winfo_width()+50}x850")
+        )
+                   )
+        self.after(120,self.AmountUpdate)
     def check_customer(self,nested_list):
         if not nested_list or not all(len(sublist) > 11 for sublist in nested_list):
             return False
         
         elements = [sublist[11] for sublist in nested_list]
         return all(element == elements[0] for element in elements)
+    def AmountUpdate(self):
+        Amount=0
+        for a in [r[3] for r in self.table.values]:
+            try:
+                Amount+=float(a)
+            except:
+                pass
+        self.AmountText.configure(text=Amount)
+        self.bottomFrame.configure(width=self.table.mainframe.winfo_width())
+        self.after(200000,self.AmountUpdate)
+        
     def get_mouse_position(self,event):
         x, y = event.x_root, event.y_root
         self.x=x
@@ -564,19 +693,29 @@ class Record_screen(new_toplevel):
                 list_new=self.ProductRecords.get_product(dict_["value"])
             if dict_["column"]==2:
                 list_new=self.ProductRecords.get_barcode(dict_["value"])
+            if dict_["column"]==6:
+                list_new=self.ProductRecords.get_unit(dict_["value"])
+            if dict_["column"]==10:
+                list_new=self.ProductRecords.get_process_type(dict_["value"])
+            if dict_["column"]==12:
+                list_new=self.ProductRecords.get_payment_status(dict_["value"])
+            if dict_["column"]==9:
+                list_new=self.ProductRecords.get_user(dict_["value"])
             if  "list_new" in list(locals().keys()) :
                 if list_new!=self.list_:
+
                     Record_screen(master=self,ProductRecords=self.ProductRecords,user=self.user,list_=list_new)
     def table_command_2(self,dict_,list_=None):
         if dict_["value"]!="":
             data=list(self.SelectedProductList[int(dict_["row"])])
-            #data=[["Name","Purchase","Selling","Piece","Unit","Type","Customer","Status"],data]
-            #data=data.insert(0,)
             del data[0]
-
+            
+            print(".................................")
             data_row=self.ProductRecords.find_row_id(*data)
+            print(data_row)
             self.withdraw()
             Repair_row_screen(data_row,self.ProductRecords,self.user,self.main)
+            
 
     def entry_delete(self,useless=None):
         
@@ -596,18 +735,19 @@ class Record_screen(new_toplevel):
 ###################################
 class Repair_row_screen:
     def __init__(self, data_row, ProductRecords, user, master):
-        self.toplevel = new_toplevel()
+        self.toplevel = new_toplevel(all_hide=True)
         self.row = data_row
         self.ProductRecords = ProductRecords
         self.repair_data()
-        self.toplevel.geometry("360x440")
-        self.toplevel.title(f"Repair row : {data_row}    Date : {self.data[7]}    Time : {self.data[6]}")
-        self.toplevel.protocol("WM_DELETE_WINDOW", lambda: (master.deiconify(), self.toplevel.withdraw()))
+        self.toplevel.geometry("360x420")
+        self.toplevel.title(f"Repair row : {data_row}        Date : {self.data[7]}        Time : {self.data[6]}")
         self.master = master
         self.user = user
         
+        self.undo_button = CTkButton(self.toplevel,command=lambda: (Record_screen(self.master,self.user,self.ProductRecords,main=True), self.toplevel.withdraw()), width=30, height=30, text="", bg_color="black", fg_color="black",image=CTkImage(Image.open(ICON+"undo_24.png"), size=(20,20)))
+        self.undo_button.place(x=200, y=380)
 
-        self.delete_button = CTkButton(self.toplevel,command=self.delete_row, width=30, height=30, text="", bg_color="black", fg_color="black", hover=False,image=CTkImage(Image.open(ICON+"Trash.png"), size=(20,20)))
+        self.delete_button = CTkButton(self.toplevel,command=self.delete_row, width=30, height=30, text="", bg_color="black", fg_color="black",image=CTkImage(Image.open(ICON+"Trash.png"), size=(20,20)))
         self.delete_button.place(x=300, y=380)
 
         self.update_button = CTkButton(self.toplevel,command=self.update_data ,width=30,height=30,text="",bg_color="black",fg_color="black", image=CTkImage(Image.open(ICON+"Cached.png"), size=(20,20)))
@@ -616,17 +756,20 @@ class Repair_row_screen:
         self.ProductNameText = CTkLabel(self.toplevel, text="Product name :")
         self.ProductNameComboBox = CTkComboBox(self.toplevel, bg_color="black", width=220, values=self.ProductRecords.get_unique_product_names())
         self.ProductNameComboBox.set(self.data[0])
+        self.CustomerText = CTkLabel(self.toplevel, text="Seller :")
+        self.CustomerComboBox = CTkComboBox(self.toplevel, bg_color="black", values=self.ProductRecords.get_unique_customers(), width=220)
+        self.PaymentStatusText = CTkLabel(self.toplevel, text="Payment status :")
+        self.PaymentStatusComboBox = CTkComboBox(self.toplevel, bg_color="black", values=self.ProductRecords.get_unique_payment_status(), width=220)
         self.BarCodeText = CTkLabel(self.toplevel, text="Barcode :")
         self.BarCodeEntryFake = CTkLabel(self.toplevel, fg_color="black", text=" ", anchor="w", corner_radius=ThemeManager.theme["CTkComboBox"]["corner_radius"], width=220)
-        self.PurchasePriceText = CTkLabel(self.toplevel, text="Purchase Price :")
+        self.PurchasePriceText = CTkLabel(self.toplevel, text="Amount Price :")
         self.PurchasePriceEntry = CTkEntry(self.toplevel, bg_color="black", width=220)
         
         self.UnitText = CTkLabel(self.toplevel, text="Unit :")
         self.UnitComboBoxFake = CTkLabel(self.toplevel,fg_color="black" ,text="", anchor="w",corner_radius=ThemeManager.theme["CTkComboBox"]["corner_radius"], width=218)
         self.PieceText = CTkLabel(self.toplevel, text="Piece :")
         self.PieceEntry = CTkEntry(self.toplevel, bg_color="black", width=70, font=CTkFont(size=18))
-        self.CustomerText = CTkLabel(self.toplevel, text="Seller :")
-        self.CustomerComboBox = CTkComboBox(self.toplevel, bg_color="black", values=self.ProductRecords.get_unique_customers(), width=220)
+
         self.SellingPriceText = CTkLabel(self.toplevel, text="Selling price :", font=CTkFont(size=12))
         self.SellingPriceEntry = CTkEntry(self.toplevel, bg_color="black", font=CTkFont(size=12), width=70, fg_color="black", border_color="#aa3333", border_width=1)
         
@@ -643,8 +786,7 @@ class Repair_row_screen:
         
         self.PurchasePriceText.place(x=15, y=220)
         self.PurchasePriceEntry.place(x=115, y=220)
-        self.PaymentStatusText = CTkLabel(self.toplevel, text="Payment status :")
-        self.PaymentStatusComboBox = CTkComboBox(self.toplevel, bg_color="black", values=self.ProductRecords.get_unique_payment_status(), width=220)
+        
 
         self.UnitText.place(x=15, y=180)
         self.UnitComboBoxFake.place(x=115,y=180)
@@ -709,7 +851,7 @@ class Repair_row_screen:
 
     def subtract(self, value):
         current_value = int(self.PieceEntry.get()) if self.PieceEntry.get().isdigit() else 0
-        if current_value >= value:
+        if current_value >= value or self.data[9]!="Buy":
             self.PieceEntry.delete(0, 'end')
             self.PieceEntry.insert(0, str(current_value - value))
             self.update_label()
@@ -721,7 +863,7 @@ class Repair_row_screen:
         self.PurchasePriceEntry.insert(0,self.data[2])
         self.SellingPriceEntry.insert(0,self.data[3])
         self.PaymentStatusComboBox.set(self.data[11])
-        self.DescriptionEntry.insert(0,self.data[12] if "Edited/" not in self.data[12] else self.data[12][:-7])
+        self.DescriptionEntry.insert(0,self.data[12])
 
         self.update_labels()
     def update_labels(self):
@@ -734,11 +876,13 @@ class Repair_row_screen:
         
         self.ProductRecords.delete_row(self.row)
         if self.user!="main":
-            self.ProductRecords.add(self.data[0],self.data[1],0.0,self.data[3],0,self.data[5],self.user,"Deleted","","",self.data[9]+"/"+self.DescriptionEntry.get(),self.data[6],self.data[7])
+            self.ProductRecords.add(self.data[0],self.data[1],0.0,self.data[3],0,self.data[5],self.user,"Deleted","","",self.DescriptionEntry.get(),self.data[6],self.data[7],regulation=self.data[8]+">"+self.user+":"+self.data[13])
+        self.ProductRecords.refresh_for_time()
         self.close_window()
     def update_data(self):
         self.ProductRecords.delete_row(self.row)
-        self.ProductRecords.add(self.ProductNameComboBox.get(),self.BarCodeEntryFake.cget("text"),self.PurchasePriceEntry.get(),self.SellingPriceEntry.get(),self.PieceEntry.get(),self.UnitComboBoxFake.cget("text"),self.user,self.data[9],self.CustomerComboBox.get(),self.PaymentStatusComboBox.get(),self.DescriptionEntry.get()+"/Edited")
+        self.ProductRecords.add(self.ProductNameComboBox.get(),self.BarCodeEntryFake.cget("text"),self.PurchasePriceEntry.get(),self.SellingPriceEntry.get(),self.PieceEntry.get(),self.UnitComboBoxFake.cget("text"),self.user,self.data[9],self.CustomerComboBox.get(),self.PaymentStatusComboBox.get(),self.DescriptionEntry.get(),regulation=self.data[8]+">"+self.user+":"+self.data[13])
+
         self.close_window()
     def close_window(self):
         Record_screen(self.master,self.user,self.ProductRecords,main=True)
@@ -790,7 +934,7 @@ class Sell_screen(new_toplevel):
         self.NameOptionMenu.place(x=410,y=30)
 
         self.CustomerText = CTkLabel(self.options_frame,height=30,text="Customer :")
-        self.CustomerComboBox = CTkComboBox(self.options_frame,width=140,height=30,values=["",*self.ProductRecords.get_unique_customers()])
+        self.CustomerComboBox = CTkComboBox(self.options_frame,width=140,height=30,values=["unknown",*self.ProductRecords.get_unique_customers()] if "unknown" not in self.ProductRecords.get_unique_customers() else self.ProductRecords.get_unique_customers() )
     
         self.CustomerText.place(x=30,y=30)
         self.CustomerComboBox.place(x=120,y=30)
@@ -817,6 +961,7 @@ class Sell_screen(new_toplevel):
 
         self.PaymentStatusLabel.place(x=300,y=30)
         self.PaymentStatusComboBox.place(x=400,y=30)
+        self.PaymentStatusComboBox.set("")
 
         self.DescriptionLabel = CTkLabel(self.ResultFrame,text="Description : ")
         self.DescriptionEntry = CTkEntry(self.ResultFrame)
@@ -828,10 +973,10 @@ class Sell_screen(new_toplevel):
         self.selling_price=2
         self.unit_column=3
         self.sum_column=4
-        self.piece_column=5
-        self.add_column=self.piece_column+1
-        self.subtract_column=self.piece_column+2
-        self.trash_column=self.piece_column+3
+        self.piece_column=6
+        self.add_column=5
+        self.subtract_column=self.piece_column+1
+        self.trash_column=self.piece_column+2
         
         
         self.ReturnButton.place(**self.Status_positon)
@@ -840,7 +985,7 @@ class Sell_screen(new_toplevel):
         self.ProductTable = CTkTable(self,
                                      values=[[]],
                                      colors=["#101010","#202020"],
-                                     column_widths=[400,100,70,70,30,20,20,20,20],
+                                     column_widths=[200,200,70,70,100,30,50,30,20,20],
                                      defualt_colums={self.piece_column:"1",
                                                      self.add_column:"+",
                                                      self.subtract_column:"-",
@@ -849,10 +994,10 @@ class Sell_screen(new_toplevel):
                                                      },
                                      command=print,
                                      command_2=print,
-                                     row_height=40,
+                                     row_height=30,
                                      corner_radius=15)
         self.after(100,self.tableCommands)
-
+        
 
         self.mainloop()
     def saveReceipt(self):
@@ -865,19 +1010,23 @@ class Sell_screen(new_toplevel):
         for row in self.ProductTable.values:
             self.ProductRecords.add(row[0],
                                     row[1],
-                                    0,
-                                    self.ProcessStatus*int(row[self.sum_column]),
+                                    self.ProcessStatus*float(row[self.sum_column]),
+                                    float(row[self.selling_price]),
                                     -int(row[self.piece_column])*self.ProcessStatus,
                                     row[self.unit_column],
                                     self.user,
                                     "Sell" if self.ProcessStatus==1 else "Return",
                                     self.CustomerComboBox.get() if self.CustomerComboBox.get()!="" else "unknown",
-                                    self.PaymentStatusComboBox.get(),
-                                    description=self.DescriptionEntry.get(),
+                                    self.PaymentStatusComboBox.get() if self.PaymentStatusComboBox.get()!="" else "?",
+                                    description=self.DescriptionEntry.get() if self.DescriptionEntry.get()!="" else "no explanation",
                                     time=time,
                                     date=date
             )
-        self.ProductRecords.refresh_for_time()
+        Messagebox(icon="check",title="",message="Succesfull",text_color="green")
+        
+        for i in range(self.ProductTable.rows):
+            self.ProductTable.remove_row(0)
+        
 
     def SumPriceUpdate(self):
         price=0.0
@@ -951,6 +1100,7 @@ class Sell_screen(new_toplevel):
                 self.ProductTable.update_one_value(int(self.ProductTable.values[row][self.piece_column])+1,row=row,column=self.piece_column)
                 self.ProductTable.update_one_value(float(self.ProductTable.values[row][self.piece_column])*float(self.ProductTable.values[row][self.selling_price]),row=row,column=self.sum_column)
             else:
+                print(ProductLastList)
                 self.ProductTable.add_row([ProductLastList[0],ProductLastList[1],ProductLastList[3],ProductLastList[5],ProductLastList[3]])
             if useless is not None:
                 self.BarcodeEntry.delete(0,"end")
@@ -961,7 +1111,7 @@ class Sell_screen(new_toplevel):
         if self.EntryToplevelBool:
             pass
         else:
-            self.EntryToplevelBool=True
+            self.EntryToplevelBool = True
             
             if index is None:
                 index=kwargs
