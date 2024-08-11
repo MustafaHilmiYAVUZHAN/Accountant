@@ -5,7 +5,7 @@ from hPyT import all_stuffs,maximize_minimize_button,title_bar_text_color,rainbo
 from CTkMenuBar import CTkTitleMenu as TitleMenu
 from CTkMenuBar import CustomDropdownMenu as DropdownMenu
 from CTkMessagebox import CTkMessagebox as Messagebox
-from DBManager import PasswordManager,ProductRecords
+from DBManager import PasswordManager,ProductRecords,CSVManager
 from CTkTableMini import CTkTableMini as CTkTable
 from CTkTable import CTkTableMini as CTkTablePro
 from time import time
@@ -13,10 +13,15 @@ from os import path
 from CTkCalender import CTkCalender
 from PIL import Image
 from excelCreater import ExcelTableCreator as Ecreater
+from excelCreater import ExcelTableConcubines as Etc
+from excelCreater import ExcelToPDFConverter as ExtPDF
+import threading
 from datetime import datetime
+from pathlib import Path
+
 ICON="assets\\icons\\"
 ASSETS="assets\\"
-
+LIBREOFFICE=open('LibreOfficePath.txt').read().replace('"',"")
 class new_toplevel(CTkToplevel):
     def __init__(self,all_hide : bool = False,topmost : bool = False):
         super().__init__()
@@ -31,7 +36,6 @@ class new_toplevel(CTkToplevel):
         else:
             maximize_minimize_button.hide(self)
         apply_style(self,"acrylic")
-        print(self.winfo_name())
 #################### 
 
 
@@ -190,7 +194,6 @@ class window_for_access:
 ###################################
 class market_window:
     def __init__(self,name):
-        
         self.window=new_toplevel()
         
         self.window.iconify()
@@ -526,22 +529,23 @@ class Add_product_screen(new_toplevel):
 ###################################
 class Record_screen(new_toplevel):
 
-    def __init__(self,master,user,ProductRecords,list_=None,main=False):
+    def __init__(self,master,user,ProductRecords,list_=None,main=False,customer=None):
         super().__init__()
         self.calender=None
         self.list_=list_
         self.master=master
-        self.title("Records                    User  :  "+user)
+        self.title("Records")
         self.main = self.master if main else master.main
         self.ProductRecords=ProductRecords
         self.ProductRecords.refresh_for_time()
         self.geometry("1260x850")
         self.protocol("WM_DELETE_WINDOW",lambda:(master.deiconify(),self.withdraw(),self.title_menu.withdraw(),self.title_menu.destroy()))
         self.user=user
+        self.all_customer = True
         self.header=["no","Product Name","Barcode","Amount","Selling","Piece","Unit","Time","Date","User","Process Type","Customer","Payment status","Description","Regulation"]
         self.title_menu=TitleMenu(master=self,x_offset=315)
         self.master.withdraw()
-        
+        self.title_menu.add_cascade(text=f"user : {self.user}",hover=False)
         self.title_menu.add_cascade(text="◀",command=self.backstep)
         self.title_menu.add_cascade(text="re",hover_color="transparentcolor")
         self.title_menu.add_entry(width=25)
@@ -561,7 +565,7 @@ class Record_screen(new_toplevel):
         self.bottomFrame.place(x=30,y=800)
         self.AmountLabel.place(x=10,y=30)
         self.AmountText.place(x=67,y=30)
-
+        self.customer = customer
         if list_ is None:
             self.ProductList=self.ProductRecords.get_numerate_table()
             self.list_=self.ProductList
@@ -570,7 +574,7 @@ class Record_screen(new_toplevel):
             self.ProductList=self.ProductRecords.get_numerate(list_)
         ProductList=self.ProductList
         
-        self.title_menu.menu_buttons[1].configure(text=str(int((len(self.ProductList)/25+0.999)))+"      /")
+        self.title_menu.menu_buttons[2].configure(text=str(int((len(self.ProductList)/25+0.999)))+"      /")
         if len(ProductList)>25:
             self.SelectedProductList=self.ProductList[0:25]
             
@@ -579,8 +583,29 @@ class Record_screen(new_toplevel):
         
         if self.check_customer(self.ProductList):
             self.title(f"Customer : {self.ProductList[0][11]}")
-        self.title_menu.menu_buttons[5].configure(command=lambda:Ecreater(self.SelectedProductList[1:]))
-        self.title_menu.menu_buttons[6].configure(command=lambda:Ecreater(self.ProductList))
+            self.all_customer = False
+        ################################THREADING##########################################"main"
+        
+        if self.all_customer:
+            thread_export_only = threading.Thread(target=lambda: (Ecreater(self.SelectedProductList[1:]),
+                                                                  ExtPDF("main",LIBREOFFICE),
+                                                                  print("bitti")
+                )
+            )
+        else:
+            thread_export_only = threading.Thread(target=lambda: (Ecreater(self.SelectedProductList[1:]),
+                                                                  ExtPDF("special",LIBREOFFICE),
+                                                                  print("bitti")
+                )
+            )
+        ####################################################################################
+
+        if self.all_customer:
+            thread_export = threading.Thread(target=lambda: (Ecreater(self.SelectedProductList),ExtPDF("main",LIBREOFFICE), print("bitti")))
+        else:
+            thread_export = threading.Thread(target=lambda: (Ecreater(self.SelectedProductList),ExtPDF("special",LIBREOFFICE), print("bitti")))
+        self.title_menu.menu_buttons[6].configure(command=lambda:thread_export_only.start())
+        self.title_menu.menu_buttons[7].configure(command=lambda:thread_export.start())
 
 
         self.SelectedProductList.insert(0,self.header)
@@ -629,20 +654,29 @@ class Record_screen(new_toplevel):
         if len(selection)!= 0 and selection!=self.list_:
             
             Record_screen(master=self,ProductRecords=self.ProductRecords,user=self.user,list_=selection)
-        
+        else:
+            self.title_menu.menu_buttons[5].configure(command=self.search_in_date)
         
     def search_in_date(self):
-        self.calender=CTkCalender(all_hide=None,command=self.date_func,position=f"{self.x}+{self.y+20}")
 
+        self.title_menu.menu_buttons[5].configure(command=None)
+
+        print(self.title_menu.menu_buttons[5].cget("command"))
+
+        self.calender=CTkCalender(all_hide=None,command=self.date_func,position=f"{self.x}+{self.y+20}")
+        
+
+        self.after(1000,lambda:self.title_menu.menu_buttons[5].configure(command=self.search_in_date))
+            
     def get_page(self):
         self.entry_delete()
-        return int(self.title_menu.menu_buttons[2].get())
+        return int(self.title_menu.menu_buttons[3].get())
     def go_page(self,useless=None):
         try:
             step=self.get_page()
             print(step)
         except Exception as e:
-            if self.title_menu.menu_buttons[2].get()!="":
+            if self.title_menu.menu_buttons[3].get()!="":
                 self.entry_delete()
             #self.title_menu.menu_buttons[2].delete(0,"end")
          
@@ -682,8 +716,8 @@ class Record_screen(new_toplevel):
         self.number_of(step)
     def number_of(self,step):
         
-        self.title_menu.menu_buttons[2].delete(0,"end")
-        self.title_menu.menu_buttons[2].insert(0,step)
+        self.title_menu.menu_buttons[3].delete(0,"end")
+        self.title_menu.menu_buttons[3].insert(0,step)
     def table_command(self,dict_,list_=None):
         if dict_["value"]!="" and dict_["row"]!=0:
             print(dict_)
@@ -720,9 +754,9 @@ class Record_screen(new_toplevel):
     def entry_delete(self,useless=None):
         
 
-        self.title_menu.menu_buttons[2].delete(0,"end")
+        self.title_menu.menu_buttons[3].delete(0,"end")
  
-        self.title_menu.menu_buttons[2].insert(0,str((self.ProductList.index(self.SelectedProductList[1])+1)//25+1))
+        self.title_menu.menu_buttons[3].insert(0,str((self.ProductList.index(self.SelectedProductList[1])+1)//25+1))
 
 
 
@@ -1138,5 +1172,9 @@ class Sell_screen(new_toplevel):
             Toplevel.mainloop()
             
 if __name__=="__main__":
-    market_window("main")
-    #win=window_for_access()
+    if Path(LIBREOFFICE).is_file():
+        market_window("main")
+        #win=window_for_access()
+    else:
+        Messagebox(message="Requirement is not installed, please download or check the file path \nLook LibreOfficePath.txt",title="Requirement",icon="warning").mainloop()
+        
