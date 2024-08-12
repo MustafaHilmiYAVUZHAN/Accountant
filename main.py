@@ -18,9 +18,12 @@ from excelCreater import ExcelToPDFConverter as ExtPDF
 import threading
 from datetime import datetime
 from pathlib import Path
+from CTkPDFframe import PDFViewer
+from time import sleep
 
 ICON="assets\\icons\\"
 ASSETS="assets\\"
+DATA="Data\\"
 LIBREOFFICE=open('LibreOfficePath.txt').read().replace('"',"")
 class new_toplevel(CTkToplevel):
     def __init__(self,all_hide : bool = False,topmost : bool = False):
@@ -333,6 +336,7 @@ class Add_product_screen(new_toplevel):
         self.user=user
         self.ProductRecords = ProductRecords
         self.fake =False
+        self.master=master
         self.ProductNameText = CTkLabel(self, text="Product name :")
         self.ProductNameComboBox = CTkComboBox(self, bg_color="black", width=220, values=self.ProductRecords.get_unique_product_names())
         self.BarCodeText = CTkLabel(self, text="Barcode :")
@@ -433,7 +437,7 @@ class Add_product_screen(new_toplevel):
                 self.PieceEntry.delete(0,"end")
 
                 self.BarCodeEntry.insert(0, product_dict["barcode"])
-                self.PurchasePriceEntry.insert(0, product_dict["amount"])
+                #self.PurchasePriceEntry.insert(0, product_dict["amount"])
                 self.SellingPriceEntry.insert(0, product_dict["selling_price"])
                 self.CustomerComboBox.set(product_dict["customer"])
                 self.PaymentStatusComboBox.set(product_dict["payment_status"])
@@ -446,6 +450,7 @@ class Add_product_screen(new_toplevel):
                 self.UnitComboBox.place_forget()
                 self.UnitComboBoxFake.configure(text=product_dict["unit"])
                 self.UnitComboBoxFake.place(x=116, y=180)
+                
                 self.fake=True
             else:
                 if self.fake:
@@ -484,12 +489,19 @@ class Add_product_screen(new_toplevel):
     def save(self):
         self.SaveButton.configure(command=None)
         print(self.PieceEntry.get())
+        if self.CustomerComboBox.get()!="":
+            if self.CustomerComboBox.get() not in CSVManager().read_column():
+                self.after(1020,lambda:self.SaveButton.configure(command=self.save))
+                Concubines_screen(customer=self.CustomerComboBox.get())
+                
+                
         if self.ProductNameComboBox.get()=="":
             Messagebox(self,title="Product Name ComboBox",message="should not be empty")
         elif self.DescriptionEntry.get()=="":
             Messagebox(self,title="Description Entry",message="should not be empty")
         elif self.CustomerComboBox.get()=="":
             Messagebox(self,title="Seller ComboBox",message="should not be empty")
+        
         elif self.PaymentStatusComboBox.get()=="":
             Messagebox(self,title="Payment Status ComboBox",message="should not be empty")
         elif not self.convert_str(self.PieceEntry.get()):
@@ -503,6 +515,7 @@ class Add_product_screen(new_toplevel):
             self.ProductRecords.add(self.ProductNameComboBox.get(),self.BarCodeEntryFake.cget("text"),"-"+self.PurchasePriceEntry.get(),self.SellingPriceEntry.get(),self.PieceEntry.get(),self.UnitComboBoxFake.cget("text"),self.user,"Buy",self.CustomerComboBox.get(),self.PaymentStatusComboBox.get(),self.DescriptionEntry.get())
             Messagebox(title="Succesfull",message="Your record is succesfull",icon="check",text_color="green")
             self.ProductNameComboBox.set("")
+
             self.update_combobox()
         elif self.BarCodeEntry.get()=="":
             Messagebox(self,title="Barcode Entry",message="should not be empty")
@@ -511,6 +524,7 @@ class Add_product_screen(new_toplevel):
         else:
             self.ProductRecords.add(self.ProductNameComboBox.get(),self.BarCodeEntry.get(),"-"+self.PurchasePriceEntry.get(),self.SellingPriceEntry.get(),self.PieceEntry.get(),self.UnitComboBox.get(),self.user,"Buy",self.CustomerComboBox.get(),self.PaymentStatusComboBox.get(),self.DescriptionEntry.get())
             self.ProductNameComboBox.set("")
+            
             self.update_combobox()
             Messagebox(title="Succesfull",message="Your record is succesfull",icon="check",text_color="green")
         self.after(1020,lambda:self.SaveButton.configure(command=self.save))
@@ -549,7 +563,7 @@ class Record_screen(new_toplevel):
         self.title_menu.add_cascade(text="◀",command=self.backstep)
         self.title_menu.add_cascade(text="re",hover_color="transparentcolor")
         self.title_menu.add_entry(width=25)
-        self.title_menu.menu_button.bind("<FocusIn>",lambda event: self.title_menu.menu_buttons[2].delete(0,"end"))
+        self.title_menu.menu_button.bind("<FocusIn>",lambda event: self.title_menu.menu_buttons[3].delete(0,"end"))
         self.title_menu.menu_button.bind("<FocusOut>",self.entry_delete)
         self.title_menu.menu_button.bind("<KeyRelease>", self.go_page)
         self.title_menu.add_cascade(text="▶",command=self.nobackstep)
@@ -581,31 +595,66 @@ class Record_screen(new_toplevel):
         else:
             self.SelectedProductList=ProductList[0:len(ProductList)]
         
-        if self.check_customer(self.ProductList):
+        if self.check_customer(self.ProductList) and self.ProductList[0][11]!="unknown":
             self.title(f"Customer : {self.ProductList[0][11]}")
+            self.csvm=CSVManager()
+            self.customer_info=self.csvm.get_row_by_name(self.ProductList[0][11])
+            print(self.customer_info)
+            for i,a in enumerate(list(self.customer_info)):
+                if a!="name":
+                    CTkLabel(self.bottomFrame,text=f"{a}\n\n{self.customer_info[a]}").place(x=i*180+200,y=20)
             self.all_customer = False
         ################################THREADING##########################################"main"
-        
+
+        #export_command()
         if self.all_customer:
-            thread_export_only = threading.Thread(target=lambda: (Ecreater(self.SelectedProductList[1:]),
-                                                                  ExtPDF("main",LIBREOFFICE),
-                                                                  print("bitti")
-                )
+            thread_export_only = lambda: (
+                self.withdraw(),
+                Ecreater(self.SelectedProductList[1:]),
+                ExtPDF("main",LIBREOFFICE),
+                sleep(0.3),
+                PDFviewerToplevel(master=self,name="Table.pdf"),
+                print("bitti")
             )
+
         else:
-            thread_export_only = threading.Thread(target=lambda: (Ecreater(self.SelectedProductList[1:]),
-                                                                  ExtPDF("special",LIBREOFFICE),
-                                                                  print("bitti")
+            thread_export_only = lambda: (
+                self.withdraw(),
+                Ecreater(self.SelectedProductList[1:],filename="Data\\STable.xlsx"),
+                ExtPDF("special",LIBREOFFICE,excel_file="Data\\STable.xlsx"),
+                sleep(0.3),
+                PDFviewerToplevel(master=self,name="STable.pdf"),
+                print("bitti")
                 )
-            )
+            
         ####################################################################################
 
         if self.all_customer:
-            thread_export = threading.Thread(target=lambda: (Ecreater(self.SelectedProductList),ExtPDF("main",LIBREOFFICE), print("bitti")))
+            thread_export = lambda: (
+                self.withdraw(),
+                Ecreater(self.ProductList),
+                ExtPDF("main",LIBREOFFICE),
+                
+                sleep(0.3),
+                PDFviewerToplevel(master=self,name="Table.pdf"),
+                print("bitti")
+                )
+            
         else:
-            thread_export = threading.Thread(target=lambda: (Ecreater(self.SelectedProductList),ExtPDF("special",LIBREOFFICE), print("bitti")))
-        self.title_menu.menu_buttons[6].configure(command=lambda:thread_export_only.start())
-        self.title_menu.menu_buttons[7].configure(command=lambda:thread_export.start())
+            thread_export = lambda: (
+                self.withdraw(),
+                Ecreater(self.ProductList,filename="Data\\STable.xlsx"),
+                ExtPDF("special",LIBREOFFICE,excel_file="Data\\STable.xlsx"),
+                
+                sleep(0.3),
+                PDFviewerToplevel(master=self,name="STable.pdf"),
+                print("bitti")
+                )
+            
+
+        ###################################################################################
+        self.title_menu.menu_buttons[6].configure(command=lambda:thread_export_only())
+        self.title_menu.menu_buttons[7].configure(command=lambda:thread_export())
 
 
         self.SelectedProductList.insert(0,self.header)
@@ -673,21 +722,26 @@ class Record_screen(new_toplevel):
         return int(self.title_menu.menu_buttons[3].get())
     def go_page(self,useless=None):
         try:
-            step=self.get_page()
-            print(step)
-        except Exception as e:
-            if self.title_menu.menu_buttons[3].get()!="":
-                self.entry_delete()
-            #self.title_menu.menu_buttons[2].delete(0,"end")
-         
-        if 0<step*25:
+            step=int(self.title_menu.menu_buttons[3].get())
+        
+            if 0<step*25:
 
-            if step<=int((len(self.ProductList)/25+0.999)):
-                self.SelectedProductList=self.ProductList[(step-1)*25:step*25]
-                print(str(self.SelectedProductList[1]))
-                
-                self.SelectedProductList.insert(0,self.header)
-                self.table.update_values(self.SelectedProductList)
+                if step*25<len(self.ProductList):
+                    self.SelectedProductList=self.ProductList[(step-1)*25:step*25]
+                    self.SelectedProductList.insert(0,self.header)
+                    self.table.update_values(self.SelectedProductList)
+                elif (step-1)*25<len(self.ProductList) and step*25>len(self.ProductList):
+                    self.SelectedProductList=self.ProductList[(step-1)*25:len(self.ProductList)]
+                    self.SelectedProductList.insert(0,self.header)
+                    self.table.update_values(self.SelectedProductList)
+                else:
+                    self.entry_delete()
+                self.number_of(step)
+        except:
+            if self.title_menu.menu_buttons[3].get()=="":
+                pass
+            else:
+                self.entry_delete()
 
 
     def nobackstep(self):
@@ -737,7 +791,6 @@ class Record_screen(new_toplevel):
                 list_new=self.ProductRecords.get_user(dict_["value"])
             if  "list_new" in list(locals().keys()) :
                 if list_new!=self.list_:
-
                     Record_screen(master=self,ProductRecords=self.ProductRecords,user=self.user,list_=list_new)
     def table_command_2(self,dict_,list_=None):
         if dict_["value"]!="":
@@ -755,8 +808,10 @@ class Record_screen(new_toplevel):
         
 
         self.title_menu.menu_buttons[3].delete(0,"end")
- 
-        self.title_menu.menu_buttons[3].insert(0,str((self.ProductList.index(self.SelectedProductList[1])+1)//25+1))
+        try:
+            self.title_menu.menu_buttons[3].insert(0,str((self.ProductList.index(self.SelectedProductList[0])+1)//25+1))
+        except:
+            self.title_menu.menu_buttons[3].insert(0,str((self.ProductList.index(self.SelectedProductList[1])+1)//25+1))
 
 
 
@@ -1170,11 +1225,87 @@ class Sell_screen(new_toplevel):
             print(Entry.focus_displayof())
     
             Toplevel.mainloop()
+
+class PDFviewerToplevel:
+    def __init__(self,master=None,name="STable.pdf",path=DATA):
+
+        self.toplevel = new_toplevel()
+        self.toplevel.resizable(1,1)
+        if master is not None:
+            self.toplevel.protocol("WM_DELETE_WINDOW", lambda: (master.deiconify(), self.toplevel.withdraw()))
+        PDFViewer(self.toplevel,pdf_path=path+name)
+        self.toplevel.mainloop()
+
+
+
+
+
+
+
+
+
+
+
+
+###################################
+###################################
+class Concubines_screen:
+    def __init__(self, master=None,user=None,customer=None):
+        self.master=master
+        self.toplevel=new_toplevel()
+        if master is not None:
+            self.toplevel.protocol("WM_DELETE_WINDOW", lambda: (master.deiconify(), self.toplevel.destroy()))
+        else:
+            self.toplevel.protocol("WM_DELETE_WINDOW", lambda:  self.toplevel.destroy())
+        self.toplevel.geometry("320x305")
+        self.master=master
+        self.toplevel.title("Concubines")
+        self.csvm=CSVManager()
+        self.customer=customer
+        self.user_is_main = True if user=="main" else False
+        self.add_wigdet()
+        self.toplevel.mainloop()
+    def add_wigdet(self):
+        wigdet={}
+        for i,a in enumerate(self.csvm.get_column_names()):
+            wigdet[a]=[CTkLabel(self.toplevel,text=f"{a} : ",width=150),CTkEntry(self.toplevel,width=150,bg_color="black")]
+            wigdet[a][0].grid(row=i,column=0,pady=5,padx=5)
+            wigdet[a][1].grid(row=i,column=1,pady=5,padx=5)
+        if self.customer is not None:
+            wigdet["name"][1].grid_forget()
             
+            wigdet["name"][1]=CTkLabel(self.toplevel,text=self.customer,width=150 ,text_color="#cccccc", anchor="w", fg_color=ThemeManager.theme["CTkEntry"]["fg_color"],bg_color="black", corner_radius=ThemeManager.theme["CTkComboBox"]["corner_radius"])
+            wigdet["name"][1].grid(row=0,column=1)
+        self.wigdet=wigdet
+        self.saveButton=CTkButton(self.toplevel,width=310,text="save",bg_color="black",command=self.save)
+        self.saveButton.grid(columnspan=2,row=10,column=0,pady=10,padx=5)
+    def save(self):
+        savedict={}
+        empty=False
+        for i,a in enumerate(self.csvm.get_column_names()):
+            try:
+                savedict[a]=self.wigdet[a][1].get()
+            except:
+                savedict[a]=self.customer
+        for i,a in enumerate(self.csvm.get_column_names()):
+            if savedict[a]=="":
+                empty=True
+                Messagebox(title="Empty entry",message=f"Look at {a}")
+        if not empty:
+            self.toplevel.withdraw()
+            self.csvm.add_row(savedict)
+            self.csvm.save()
+            Etc(self.csvm.to_2d_list())
+            if self.master is not None:
+                lambda: (self.master.deiconify(), self.toplevel.withdraw())()
+            self.toplevel.destroy()
+        print(savedict)
 if __name__=="__main__":
     if Path(LIBREOFFICE).is_file():
-        market_window("main")
-        #win=window_for_access()
+        #PDFviewerToplevel()
+        #market_window("main")
+        win=window_for_access()
+        #Concubines_screen(customer="hilmi")
     else:
         Messagebox(message="Requirement is not installed, please download or check the file path \nLook LibreOfficePath.txt",title="Requirement",icon="warning").mainloop()
         
