@@ -1,15 +1,14 @@
 from customtkinter import *
 from customtitlebar import *
 from pywinstyles import apply_style
-from hPyT import all_stuffs,maximize_minimize_button,title_bar_text_color,rainbow_border,border_color
+from hPyT import all_stuffs,maximize_minimize_button,border_color
 from CTkMenuBar import CTkTitleMenu as TitleMenu
-from CTkMenuBar import CustomDropdownMenu as DropdownMenu
+
 from CTkMessagebox import CTkMessagebox as Messagebox
 from DBManager import PasswordManager,ProductRecords,CSVManager
 from CTkTableMini import CTkTableMini as CTkTable
-from CTkTable import CTkTableMini as CTkTablePro
-
-from os import path
+from PIL import ImageTk
+from os import _exit
 from CTkCalender import CTkCalender
 from PIL import Image
 from excelCreater import ExcelTableCreator as Ecreater
@@ -20,17 +19,47 @@ from pathlib import Path
 from CTkPDFframe import PDFViewer
 from time import sleep
 from sys import argv
-ICON="assets\\icons\\"
-ASSETS="assets\\"
-DATA="Data\\"
-LIBREOFFICE=open('LibreOfficePath.txt').read().replace('"',"")
+from sys import exit as superexit
+from os import getenv
+
+def get_desktop_path():
+    # Kullanıcı profil dizinini al
+    user_profile = os.getenv('USERPROFILE') or os.getenv('HOME')
+    
+    if not user_profile:
+        raise EnvironmentError("Kullanıcı profil dizini bulunamadı.")
+    
+    # Masaüstü dizinini oluştur
+    desktop_path = os.path.join(user_profile, 'Desktop')
+    
+    return desktop_path
+
+MYFOLDER="Muhasebecin"
+ICON="data\\assets\\icons\\"
+ASSETS="data\\assets\\"
+DATA="data\\"
+DESKTOP_PATH = get_desktop_path()
+MYFOLDER=DESKTOP_PATH+"\\"+MYFOLDER
+print(MYFOLDER)
+os.chdir(MYFOLDER)
+
+try:
+
+    LIBREOFFICE=open(DATA+'LibreOfficePath.txt').read().replace('"',"")
+except:
+    print("LibreOfficePath.txt\n\nwhere is it?")
 class new_toplevel(CTkToplevel):
     def __init__(self,all_hide : bool = False,topmost : bool = False):
         super().__init__()
-        set_default_color_theme(path.join(path.dirname(path.realpath(__file__)), 'assets\\extreme.json'))
+        set_default_color_theme(ASSETS+'extreme.json')
         self.configure(takefocus=False)
         self.attributes("-topmost", True)
         self.resizable(0,0)
+        self.wm_iconbitmap()
+        self.icon=ImageTk.PhotoImage(file=ICON+"transparent.ico")
+        self.after(100,lambda:self.iconphoto(False,self.icon))
+        self.after(200,lambda:self.iconphoto(False,self.icon))
+        self.after(300,lambda:self.iconphoto(False,self.icon))
         if not topmost:
             self.attributes("-topmost", False)
         if all_hide:
@@ -65,9 +94,13 @@ class passwords_window:
             self.DataForAccess=PasswordManager()
         self.toplevel.geometry("175x150+600+400")
         self.toplevel.resizable(0,0)
-        self.toplevel.title("Access")
+        self.toplevel.title("Erişim")
         maximize_minimize_button.hide(self.toplevel)
-        
+        self.toplevel.wm_iconbitmap()
+        self.icon=ImageTk.PhotoImage(file=ICON+"transparent.ico")
+        self.toplevel.after(100,lambda:self.toplevel.iconphoto(False,self.icon))
+        self.toplevel.after(200,lambda:self.toplevel.iconphoto(False,self.icon))
+        self.toplevel.after(300,lambda:self.toplevel.iconphoto(False,self.icon))
 
         border_color.set(self.toplevel,"#ff0000")
         apply_style(self.toplevel,"acrylic")
@@ -75,23 +108,21 @@ class passwords_window:
         self.font=CTkFont(size=12)
         self.name_list=[item for tup in self.DataForAccess.list_name() for item in tup]
         print(self.name_list)
-        self.nameLabel=CTkLabel(self.toplevel,text="Name          :",font=self.font)
+        self.nameLabel=CTkLabel(self.toplevel,text="Adınız          :",font=self.font)
         self.nameLabel.place(rely=0.1,relx=0.01,relwidth=0.4,relheight=0.12)
         self.nameComboBox=CTkComboBox(self.toplevel,bg_color="black",values=self.name_list,font=self.font)
         self.nameComboBox.place(rely=0.1,relx=0.45,relwidth=0.5,relheight=0.12)
-        self.passwordLabel=CTkLabel(self.toplevel,text="Password   :",font=self.font)
+        self.passwordLabel=CTkLabel(self.toplevel,text="Şifreniz   :",font=self.font)
         self.passwordLabel.place(rely=0.4,relx=0.01,relwidth=0.4,relheight=0.12)
         self.passwordEnrty=CTkEntry(self.toplevel,bg_color="black",show="*",font=self.font)
         self.passwordEnrty.place(rely=0.4,relx=0.45,relwidth=0.5,relheight=0.12)
-        self.forSave=CTkButton(self.toplevel,text="Save",bg_color="black",command=self.save,font=self.font)
+        self.forSave=CTkButton(self.toplevel,text="Kaydet",bg_color="black",command=self.save,font=self.font)
         self.forSave.place(rely=0.7,relx=0.1,relwidth=0.4,relheight=0.15)
-        self.forDelete=CTkButton(self.toplevel,text="delete",hover_color="#ff0000",bg_color="black",font=self.font,command=self.delete)
+        self.forDelete=CTkButton(self.toplevel,text="Sil",hover_color="#ff0000",bg_color="black",font=self.font,command=self.delete)
         self.forDelete.place(rely=0.7,relx=0.6,relwidth=0.3,relheight=0.15)
         self.toplevel.mainloop()####################
     def withdraw(self):
-        print("doğru")
         self.toplevel.withdraw()
-        print("heelllooo")
         market_window("main")
     def save(self):
         password=self.passwordEnrty.get()
@@ -105,7 +136,7 @@ class passwords_window:
             self.DataForAccess.delete_data(name)
             self.DataForAccess.insert_data(name,password)
         else:
-            Messagebox(title="This is same",message="These are same password and same name")
+            Messagebox(title="Aynı bunlar",message="Zaten bu isim ve şifrede kayıtlılar")
         print(f"Name : {name}         PASSWORD: {password}")
     def delete(self):
         name=self.nameComboBox.get()
@@ -133,23 +164,28 @@ class window_for_access:
         
         #title_bar.hide(self.window)
         #self.window.mainloop()####################
-        set_default_color_theme("assets\\extreme.json")
+        set_default_color_theme(ASSETS+"extreme.json")
         self.window.geometry("300x200+600+250")
         self.window.resizable(0,0)
-        self.window.title("Access")
+        self.window.title("Erişim")
         all_stuffs.hide(self.window)
         
         apply_style(self.window,"acrylic")
-        
-        self.nameLabel=CTkLabel(self.window,text="Name          :")
+        self.window.wm_iconbitmap()
+        self.icon=ImageTk.PhotoImage(file=ICON+"transparent.ico")
+        self.window.iconphoto(False,self.icon)
+        self.window.after(50,lambda:self.window.iconphoto(False,self.icon))
+        self.window.after(100,lambda:self.window.iconphoto(False,self.icon))
+        self.window.after(200,lambda:self.window.iconphoto(False,self.icon))
+        self.nameLabel=CTkLabel(self.window,text="İsminiz          :")
         self.nameLabel.place(rely=0.2,relx=0.05,relwidth=0.252,relheight=0.15)
         self.nameEntry=CTkEntry(self.window,bg_color="black")
         self.nameEntry.place(rely=0.2,relx=0.45,relwidth=0.5,relheight=0.15)
-        self.passwordLabel=CTkLabel(self.window,text="Password   :")
+        self.passwordLabel=CTkLabel(self.window,text="Şifreniz   :")
         self.passwordLabel.place(rely=0.4,relx=0.05,relwidth=0.252,relheight=0.15)
         self.passwordEnrty=CTkEntry(self.window,bg_color="black",show="*")
         self.passwordEnrty.place(rely=0.4,relx=0.45,relwidth=0.5,relheight=0.15)
-        self.ButtonforAccess=CTkButton(self.window,text="Login",bg_color="black",command=self.loginControl)
+        self.ButtonforAccess=CTkButton(self.window,text="Giriş",bg_color="black",command=self.loginControl)
         self.ButtonforAccess.place(rely=0.67,relx=0.3,relwidth=0.4,relheight=0.15)
         
         self.nameEntry.bind("<Return>",lambda event:self.passwordEnrty.focus())
@@ -177,6 +213,7 @@ class window_for_access:
             if name=="main" and password=="main":
                 self.window.withdraw()
                 passwords_window(self.DataForAccess)
+
             else:
                 #Messagebox(title="Succesfull your Access",message="Everythin is True")
                 self.window.withdraw()
@@ -205,7 +242,7 @@ class market_window:
         self.window.title(f"User: {name}")
         maximize_minimize_button.hide(self.window)
         apply_style(self.window,"acrylic")
-        self.window.protocol("WM_DELETE_WINDOW",lambda:Messagebox(title="Exit",message="Do you want exit",option_1="Exit",option_1_func=lambda:exit(),option_2="cancel",option_2_func=lambda:print("",end=""),option_3="Change user",option_3_func=lambda:(self.window.withdraw(),window_for_access())))
+        self.window.protocol("WM_DELETE_WINDOW",lambda:Messagebox(title="Exit",message="Do you want exit",option_1="Exit",option_1_func=lambda:(superexit(),exit(),_exit()),option_2="cancel",option_2_func=lambda:print("",end=""),option_3="Change user",option_3_func=lambda:(self.window.withdraw(),window_for_access())))
         self.add_image = CTkImage(Image.open(ICON+"add_shopping_cart.png"), size=(70, 70))
         self.record_image = CTkImage(Image.open(ICON+"description.png"), size=(70, 70))
         self.sell_image = CTkImage(Image.open(ICON+"shopping.png"), size=(70, 70))
@@ -594,7 +631,7 @@ class Record_screen(new_toplevel):
         self.bottomFrame = CTkFrame(self)
         self.AmountLabel = CTkLabel(self.bottomFrame,text="Amount : ")
         self.AmountText = CTkLabel(self.bottomFrame,text=".")
-        self.bottomFrame.place(x=30,y=800)
+        self.after(1200,lambda:self.bottomFrame.place(x=30,y=800))
         self.AmountLabel.place(x=10,y=30)
         self.AmountText.place(x=67,y=30)
         
@@ -724,7 +761,7 @@ class Record_screen(new_toplevel):
             except:
                 pass
         self.AmountText.configure(text=Amount)
-        self.bottomFrame.configure(width=self.table.mainframe.winfo_width())
+        self.after(400,lambda:self.bottomFrame.configure(width=self.table.mainframe.winfo_width()))
         self.after(200000,self.AmountUpdate)
     def PieceUpdate(self):
         Piece=0
@@ -1410,23 +1447,25 @@ class Dispose_screen:
 if __name__=="__main__":
     if Path(LIBREOFFICE).is_file():
         #PDFviewerToplevel()
-        if len(argv)==1:
-            print("You have not access")
-        elif argv[1]==datetime.now().strftime("%d/%m/%Y"):
-            window_for_access()
-        elif argv[1]=="3.1415926535897":
-            if len(argv)==3:
-                if argv[2]==datetime.now().strftime("%d/%m/%Y"):
-                    market_window("main")
-        elif argv[1]=="eval":
-            while 1:
-                try:
-                    print(str(eval(input(">>>"))))
-                except Exception as e:
-                    print(f"Error: {e}")
-        else:
-            print("You have not access\n\nWhat are you doing\n\n   ◌  #/#/#\n\n#/#/#")
-        #Concubines_screen(customer="hilmi")
+        window_for_access()
+        if False:
+            if len(argv)==1:
+                print("You have not access")
+            elif argv[1]==datetime.now().strftime("%d/%m/%Y"):
+                window_for_access()
+            elif argv[1]=="3.1415926535897":
+                if len(argv)==3:
+                    if argv[2]==datetime.now().strftime("%d/%m/%Y"):
+                        market_window("main")
+            elif argv[1]=="eval":
+                while 1:
+                    try:
+                        print(str(eval(input(">>>"))))
+                    except Exception as e:
+                        print(f"Error: {e}")
+            else:
+                print("You have not access\n\nWhat are you doing\n\n   ◌  #/#/#\n\n#/#/#")
+            #Concubines_screen(customer="hilmi")
     else:
         Messagebox(message="Requirement is not installed, please download or check the file path \nLook LibreOfficePath.txt",title="Requirement",icon="warning").mainloop()
         
