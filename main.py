@@ -34,14 +34,15 @@ def get_desktop_path():
     
     return desktop_path
 
-MYFOLDER="Muhasebecin"
+MYFOLDER="AccountantYAVUZ"
 ICON="data\\assets\\icons\\"
 ASSETS="data\\assets\\"
 DATA="data\\"
 DESKTOP_PATH = get_desktop_path()
 MYFOLDER=DESKTOP_PATH+"\\"+MYFOLDER
 print(MYFOLDER)
-os.chdir(MYFOLDER)
+
+###os.chdir(MYFOLDER)
 
 try:
 
@@ -94,7 +95,7 @@ class passwords_window:
             self.DataForAccess=PasswordManager()
         self.toplevel.geometry("175x150+600+400")
         self.toplevel.resizable(0,0)
-        self.toplevel.title("Erişim")
+        self.toplevel.title("Access")
         maximize_minimize_button.hide(self.toplevel)
         self.toplevel.wm_iconbitmap()
         self.icon=ImageTk.PhotoImage(file=ICON+"transparent.ico")
@@ -108,21 +109,23 @@ class passwords_window:
         self.font=CTkFont(size=12)
         self.name_list=[item for tup in self.DataForAccess.list_name() for item in tup]
         print(self.name_list)
-        self.nameLabel=CTkLabel(self.toplevel,text="Adınız          :",font=self.font)
+        self.nameLabel=CTkLabel(self.toplevel,text="Name          :",font=self.font)
         self.nameLabel.place(rely=0.1,relx=0.01,relwidth=0.4,relheight=0.12)
         self.nameComboBox=CTkComboBox(self.toplevel,bg_color="black",values=self.name_list,font=self.font)
         self.nameComboBox.place(rely=0.1,relx=0.45,relwidth=0.5,relheight=0.12)
-        self.passwordLabel=CTkLabel(self.toplevel,text="Şifreniz   :",font=self.font)
+        self.passwordLabel=CTkLabel(self.toplevel,text="Password   :",font=self.font)
         self.passwordLabel.place(rely=0.4,relx=0.01,relwidth=0.4,relheight=0.12)
         self.passwordEnrty=CTkEntry(self.toplevel,bg_color="black",show="*",font=self.font)
         self.passwordEnrty.place(rely=0.4,relx=0.45,relwidth=0.5,relheight=0.12)
-        self.forSave=CTkButton(self.toplevel,text="Kaydet",bg_color="black",command=self.save,font=self.font)
+        self.forSave=CTkButton(self.toplevel,text="Save",bg_color="black",command=self.save,font=self.font)
         self.forSave.place(rely=0.7,relx=0.1,relwidth=0.4,relheight=0.15)
-        self.forDelete=CTkButton(self.toplevel,text="Sil",hover_color="#ff0000",bg_color="black",font=self.font,command=self.delete)
+        self.forDelete=CTkButton(self.toplevel,text="delete",hover_color="#ff0000",bg_color="black",font=self.font,command=self.delete)
         self.forDelete.place(rely=0.7,relx=0.6,relwidth=0.3,relheight=0.15)
         self.toplevel.mainloop()####################
     def withdraw(self):
+        print("doğru")
         self.toplevel.withdraw()
+        print("heelllooo")
         market_window("main")
     def save(self):
         password=self.passwordEnrty.get()
@@ -136,7 +139,7 @@ class passwords_window:
             self.DataForAccess.delete_data(name)
             self.DataForAccess.insert_data(name,password)
         else:
-            Messagebox(title="Aynı bunlar",message="Zaten bu isim ve şifrede kayıtlılar")
+            Messagebox(title="This is same",message="These are same password and same name")
         print(f"Name : {name}         PASSWORD: {password}")
     def delete(self):
         name=self.nameComboBox.get()
@@ -167,7 +170,7 @@ class window_for_access:
         set_default_color_theme(ASSETS+"extreme.json")
         self.window.geometry("300x200+600+250")
         self.window.resizable(0,0)
-        self.window.title("Erişim")
+        self.window.title("Access")
         all_stuffs.hide(self.window)
         
         apply_style(self.window,"acrylic")
@@ -177,15 +180,15 @@ class window_for_access:
         self.window.after(50,lambda:self.window.iconphoto(False,self.icon))
         self.window.after(100,lambda:self.window.iconphoto(False,self.icon))
         self.window.after(200,lambda:self.window.iconphoto(False,self.icon))
-        self.nameLabel=CTkLabel(self.window,text="İsminiz          :")
+        self.nameLabel=CTkLabel(self.window,text="Name          :")
         self.nameLabel.place(rely=0.2,relx=0.05,relwidth=0.252,relheight=0.15)
         self.nameEntry=CTkEntry(self.window,bg_color="black")
         self.nameEntry.place(rely=0.2,relx=0.45,relwidth=0.5,relheight=0.15)
-        self.passwordLabel=CTkLabel(self.window,text="Şifreniz   :")
+        self.passwordLabel=CTkLabel(self.window,text="Password   :")
         self.passwordLabel.place(rely=0.4,relx=0.05,relwidth=0.252,relheight=0.15)
         self.passwordEnrty=CTkEntry(self.window,bg_color="black",show="*")
         self.passwordEnrty.place(rely=0.4,relx=0.45,relwidth=0.5,relheight=0.15)
-        self.ButtonforAccess=CTkButton(self.window,text="Giriş",bg_color="black",command=self.loginControl)
+        self.ButtonforAccess=CTkButton(self.window,text="Login",bg_color="black",command=self.loginControl)
         self.ButtonforAccess.place(rely=0.67,relx=0.3,relwidth=0.4,relheight=0.15)
         
         self.nameEntry.bind("<Return>",lambda event:self.passwordEnrty.focus())
